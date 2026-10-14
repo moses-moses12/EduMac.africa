@@ -307,39 +307,22 @@ function StaffDashboardContent() {
     <div className="space-y-8 pb-12">
 
 
-      {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-900 uppercase tracking-wider">
-              Admissions & Front-Office Desk
-            </span>
-            <span className="text-xs text-slate-400">{staffName} (Administrative Front-Desk)</span>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
-            Student Registration, Admissions & Campus Reception
-          </h1>
-          <p className="text-sm text-slate-500">
-            Pupil enrollment, guardian directories, transfer clearance, document archives, and visitor badging.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setShowRegModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            Register Student
-          </button>
-          <button
-            onClick={() => setShowVisitorModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Sign In Visitor
-          </button>
-        </div>
+      {/* Top Actions */}
+      <div className="flex justify-end gap-2.5">
+        <button
+          onClick={() => setShowRegModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors cursor-pointer"
+        >
+          <UserPlus className="w-3.5 h-3.5" />
+          Register Student
+        </button>
+        <button
+          onClick={() => setShowVisitorModal(true)}
+          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Sign In Visitor
+        </button>
       </div>
 
       {/* KPI Cards */}
