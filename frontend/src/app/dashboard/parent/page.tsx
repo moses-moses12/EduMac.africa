@@ -59,7 +59,6 @@ import {
   Heart
 } from 'lucide-react';
 import { NotificationCenter } from '@/components/notifications/notification-center';
-import { DashboardProfileTab } from '@/components/profile';
 
 type TabKey =
   | 'overview'
@@ -71,8 +70,7 @@ type TabKey =
   | 'timetable'
   | 'assignments'
   | 'announcements'
-  | 'notifications'
-  | 'profile';
+  | 'notifications';
 
 interface ChildSummary {
   id: string;
@@ -170,8 +168,7 @@ function ParentDashboardContent() {
       'timetable',
       'assignments',
       'announcements',
-      'notifications',
-      'profile'
+      'notifications'
     ].includes(tabParam)) {
       setActiveTab(tabParam);
     }
@@ -540,7 +537,6 @@ function ParentDashboardContent() {
             { id: 'assignments', label: 'Assignments', icon: ClipboardList, badge: assignments.length || undefined },
             { id: 'announcements', label: 'Announcements', icon: FileText, badge: announcements.length || undefined },
             { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount || undefined, badgeColor: 'bg-amber-500 text-slate-950' },
-            { id: 'profile', label: 'Guardian Profile', icon: User },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1580,20 +1576,7 @@ function ParentDashboardContent() {
         <NotificationCenter />
       )}
 
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* ── TAB 11: GUARDIAN PROFILE ── */}
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {activeTab === 'profile' && (
-        <DashboardProfileTab
-          title="Guardian Account Profile"
-          subtitle="Official institutional parent contact record, emergency contacts, and profile photo"
-          extraDetails={[
-            { label: 'Primary Guardian Name', val: parentName },
-            { label: 'Enrolled Linked Wards', val: `${linkedChildren.length} Enrolled Students` },
-            { label: 'Guardian Verification', val: 'VERIFIED LEGAL GUARDIAN' },
-          ]}
-        />
-      )}
+
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* ── MODAL: ONLINE FEE PAYMENT ── */}

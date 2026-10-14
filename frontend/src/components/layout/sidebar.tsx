@@ -208,7 +208,6 @@ const parentNavItems: NavItem[] = [
   { name: 'Assignments', href: '/dashboard/parent?tab=assignments', tab: 'assignments', icon: ClipboardList },
   { name: 'Announcements', href: '/dashboard/parent?tab=announcements', tab: 'announcements', icon: FileText },
   { name: 'Notifications', href: '/dashboard/parent?tab=notifications', tab: 'notifications', icon: Bell },
-  { name: 'Guardian Profile', href: '/dashboard/parent?tab=profile', tab: 'profile', icon: User },
   { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
