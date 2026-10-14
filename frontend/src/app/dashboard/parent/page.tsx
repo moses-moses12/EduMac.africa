@@ -55,10 +55,8 @@ import {
   Info,
   Phone,
   Mail,
-  MapPin,
   Heart
 } from 'lucide-react';
-import { NotificationCenter } from '@/components/notifications/notification-center';
 
 type TabKey =
   | 'overview'
@@ -69,8 +67,7 @@ type TabKey =
   | 'payments'
   | 'timetable'
   | 'assignments'
-  | 'announcements'
-  | 'notifications';
+  | 'announcements';
 
 interface ChildSummary {
   id: string;
@@ -167,8 +164,7 @@ function ParentDashboardContent() {
       'payments',
       'timetable',
       'assignments',
-      'announcements',
-      'notifications'
+      'announcements'
     ].includes(tabParam)) {
       setActiveTab(tabParam);
     }
@@ -536,7 +532,6 @@ function ParentDashboardContent() {
             { id: 'timetable', label: 'Timetable', icon: Clock },
             { id: 'assignments', label: 'Assignments', icon: ClipboardList, badge: assignments.length || undefined },
             { id: 'announcements', label: 'Announcements', icon: FileText, badge: announcements.length || undefined },
-            { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount || undefined, badgeColor: 'bg-amber-500 text-slate-950' },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -554,7 +549,7 @@ function ParentDashboardContent() {
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    tab.badgeColor ? tab.badgeColor : (isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700')
+                    isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
                   }`}>
                     {tab.badge}
                   </span>
@@ -1569,12 +1564,7 @@ function ParentDashboardContent() {
         </div>
       )}
 
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {/* ── TAB 10: NOTIFICATIONS CENTER ── */}
-      {/* ────────────────────────────────────────────────────────────────────────── */}
-      {activeTab === 'notifications' && (
-        <NotificationCenter />
-      )}
+
 
 
 

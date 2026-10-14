@@ -207,7 +207,6 @@ const parentNavItems: NavItem[] = [
   { name: 'Class Timetable', href: '/dashboard/parent?tab=timetable', tab: 'timetable', icon: Clock },
   { name: 'Assignments', href: '/dashboard/parent?tab=assignments', tab: 'assignments', icon: ClipboardList },
   { name: 'Announcements', href: '/dashboard/parent?tab=announcements', tab: 'announcements', icon: FileText },
-  { name: 'Notifications', href: '/dashboard/parent?tab=notifications', tab: 'notifications', icon: Bell },
   { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
