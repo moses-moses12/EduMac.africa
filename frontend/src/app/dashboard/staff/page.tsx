@@ -305,32 +305,7 @@ function StaffDashboardContent() {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* EXPLICIT ACCESS CONTROL GUARDRAIL BANNER */}
-      <div className="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-            <Lock className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-sky-400 uppercase tracking-wider">
-                Front-Office & Reception Role Scope
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                Non-Administrative
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 mt-0.5">
-              Access limited to admissions, student records, visitor logs, and parent communication.
-              <strong> Restricted:</strong> Financial vote head configuration, exam mark entry/moderation, and user security administration are disabled.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 shrink-0">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          Access Level: Level-1 Public Desk
-        </div>
-      </div>
+
 
       {/* Top Banner & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
