@@ -199,6 +199,7 @@ const studentNavItems: NavItem[] = [
 
 // 9. Parent Menu Items
 const parentNavItems: NavItem[] = [
+  { name: 'Overview', href: '/dashboard/parent?tab=overview', tab: 'overview', icon: LayoutDashboard },
   { name: 'Linked Children', href: '/dashboard/parent?tab=children', tab: 'children', icon: Users },
   { name: "Children's Results", href: '/dashboard/parent?tab=results', tab: 'results', icon: Award },
   { name: 'Attendance', href: '/dashboard/parent?tab=attendance', tab: 'attendance', icon: UserCheck },

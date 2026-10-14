@@ -519,46 +519,7 @@ function ParentDashboardContent() {
         </div>
       )}
 
-      {/* ── Navigation Tabs ── */}
-      <div className="border-b border-slate-200 bg-white rounded-t-xl px-2 pt-2 overflow-x-auto scrollbar-none shadow-sm">
-        <div className="flex items-center space-x-1 min-w-max">
-          {[
-            { id: 'overview', label: 'Overview', icon: TrendingUp },
-            { id: 'children', label: 'Linked Children', icon: Users, badge: linkedChildren.length },
-            { id: 'results', label: "Children's Results", icon: Award },
-            { id: 'attendance', label: 'Attendance', icon: UserCheck },
-            { id: 'fees', label: 'Fee Balances', icon: CreditCard },
-            { id: 'payments', label: 'Payment History', icon: Receipt },
-            { id: 'timetable', label: 'Timetable', icon: Clock },
-            { id: 'assignments', label: 'Assignments', icon: ClipboardList, badge: assignments.length || undefined },
-            { id: 'announcements', label: 'Announcements', icon: FileText, badge: announcements.length || undefined },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id as TabKey)}
-                className={`flex items-center gap-2 px-3.5 py-3 text-xs font-semibold rounded-t-lg transition-all border-b-2 ${
-                  isActive
-                    ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
-                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
-                <span>{tab.label}</span>
-                {tab.badge !== undefined && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* ── TAB 1: OVERVIEW ── */}
