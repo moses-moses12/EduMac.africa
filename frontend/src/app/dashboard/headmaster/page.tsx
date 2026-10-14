@@ -8,9 +8,9 @@ import {
   GraduationCap, CalendarCheck, Award, CreditCard,
   Users, Layers, FileSpreadsheet, BarChart3, AlertTriangle,
   RefreshCw, Download, CheckCircle2,
-  ArrowUpRight, ArrowDownRight, Shield, Lock,
+  ArrowUpRight, ArrowDownRight, Shield,
   PieChart, Megaphone, Plus, X,
-  AlertCircle, Info, FileCheck, Check, ShieldAlert,
+  AlertCircle, Info, FileCheck,
   LogOut
 } from 'lucide-react';
 import { ExecutiveAnalyticsCharts } from '@/components/analytics/executive-charts';
@@ -115,94 +115,6 @@ function Badge({ label, color }: { label: string; color: string }) {
   return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${color}`}>{label}</span>;
 }
 
-// ─── Administrative Boundary Card (Separation of Duties) ─────────────────────
-function SecurityBoundaryCard() {
-  return (
-    <div className="bg-slate-900 text-white rounded-xl p-5 border border-slate-800 shadow-sm">
-      <div className="flex items-start gap-4">
-        <div className="p-3 bg-amber-500/20 rounded-xl text-amber-400 shrink-0 border border-amber-500/30">
-          <ShieldAlert className="w-6 h-6" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-400/20 text-amber-300 border border-amber-400/30">
-              Role Boundary Enforced
-            </span>
-            <span className="text-xs text-slate-400 font-medium">RBAC Security Policy · Separation of Duties (SoD)</span>
-          </div>
-          <h3 className="text-base font-bold text-white mt-1.5">
-            Executive Governance vs Technical Administration
-          </h3>
-          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            Per institutional governance standards, <strong>the Headmaster does NOT automatically receive technical system administration permissions</strong>. Management analytics, academic moderation, and circular broadcasts are partitioned from IT infrastructure controls.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-5 border-t border-slate-700/60 text-xs">
-        {/* Headmaster Privileges */}
-        <div className="p-4 rounded-xl bg-slate-800/80 border border-emerald-500/30 space-y-2">
-          <div className="flex items-center gap-2 font-bold text-emerald-400">
-            <Check className="w-4 h-4" />
-            <span>Headmaster Management Authority (Authorized)</span>
-          </div>
-          <ul className="space-y-1.5 text-slate-300 text-[11px]">
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Institutional population, attendance & academic analytics
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Examination results Tier 3 approval sign-off (<span className="font-mono text-emerald-300">APPROVED</span>)
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Official campus-wide bulletins & circulars broadcasting
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Institutional fee overview & collection efficiency oversight
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Faculty statistics, class performance rankings & intervention orders
-            </li>
-          </ul>
-        </div>
-
-        {/* Technical Admin Privileges (Restricted) */}
-        <div className="p-4 rounded-xl bg-slate-800/80 border border-rose-500/30 space-y-2">
-          <div className="flex items-center gap-2 font-bold text-rose-400">
-            <Lock className="w-4 h-4" />
-            <span>Technical System Administration (Strictly Restricted to IT Admin)</span>
-          </div>
-          <ul className="space-y-1.5 text-slate-300 text-[11px]">
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              User account provisioning, credential resets & deletions (<span className="font-mono text-rose-300">403 Forbidden</span>)
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              System role alteration & permissions elevation (<span className="font-mono text-rose-300">403 Forbidden</span>)
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              Raw technical audit logs forensics & tampering (<span className="font-mono text-rose-300">403 Forbidden</span>)
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              Database schema management & server configuration
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              Direct alteration of raw examination scores without workflow
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Headmaster Dashboard Content ─────────────────────────────────────────────
 function HeadmasterContent() {
@@ -715,8 +627,6 @@ function HeadmasterContent() {
             />
           </div>
 
-          {/* Security Boundary Matrix Card */}
-          <SecurityBoundaryCard />
 
           {/* Real Live Recharts Professional Charts Section */}
           <ExecutiveAnalyticsCharts title="Executive Governance & Institutional Trends" />
@@ -1427,9 +1337,6 @@ function HeadmasterContent() {
             </div>
           )}
 
-          <div className="mt-6">
-            <SecurityBoundaryCard />
-          </div>
         </Section>
       )}
 
