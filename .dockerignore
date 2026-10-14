@@ -1,0 +1,26 @@
+.git/
+.gitignore
+.env
+.env.local
+
+# Backend ignores
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*.py[cod]
+backend/.venv/
+backend/venv/
+backend/.pytest_cache/
+backend/staticfiles/
+backend/media/
+backend/*.sqlite3
+
+# Frontend ignores
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.pnpm-debug.log*
+
+# OS caches
+.DS_Store
+Thumbs.db
