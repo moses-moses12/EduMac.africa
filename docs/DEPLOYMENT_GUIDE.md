@@ -1,4 +1,4 @@
-# Apex Academy SMS – Production Deployment Guide
+# EduMax SMS – Production Deployment Guide
 
 ## 1. Prerequisites
 - Docker & Docker Compose v2.20+

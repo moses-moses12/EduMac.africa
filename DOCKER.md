@@ -1,6 +1,6 @@
 # Docker Deployment & Orchestration Guide
 
-This project includes complete, containerized infrastructure for the **Apex School Management System** using Docker, Docker Compose, PostgreSQL 16, Redis 7, Celery, Gunicorn, Next.js 16, and Nginx.
+This project includes complete, containerized infrastructure for the **EduMax School Management System** using Docker, Docker Compose, PostgreSQL 16, Redis 7, Celery, Gunicorn, Next.js 16, and Nginx.
 
 ---
 

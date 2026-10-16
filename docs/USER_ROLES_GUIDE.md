@@ -1,4 +1,4 @@
-# Apex Academy SMS – User Roles & Authentication Guide
+# EduMax SMS – User Roles & Authentication Guide
 
 ## Pre-Seeded Institutional Demo Accounts
 Every core persona is seeded in the database with ready-to-use workflows.

@@ -1,4 +1,4 @@
-# Apex Academy SMS – REST API Endpoint Reference
+# EduMax SMS – REST API Endpoint Reference
 
 ## Base URL
 - Production: `https://sms.school.edu/api/v1`

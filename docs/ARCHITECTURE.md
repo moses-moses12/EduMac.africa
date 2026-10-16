@@ -1,4 +1,4 @@
-# Apex Academy School Management System – Architecture Specification
+# EduMax School Management System – Architecture Specification
 
 ## 1. High-Level Architectural Pattern
 The system employs a decoupled, production-grade enterprise architecture:
