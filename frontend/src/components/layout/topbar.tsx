@@ -102,7 +102,7 @@ export function Topbar() {
         {/* Current Active Role Pill */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xs">
           <Shield className="w-3.5 h-3.5 text-indigo-400" />
-          <span>{role || 'ADMIN'}</span>
+          <span suppressHydrationWarning>{role || 'ADMIN'}</span>
         </div>
 
         {/* Notification Bell Dropdown */}

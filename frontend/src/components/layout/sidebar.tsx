@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
@@ -283,6 +283,11 @@ function SidebarContent() {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') || 'overview';
   const { user, role, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Determine current active role strictly
   const activeRole: UserRole = role || (pathname.includes('/student') ? 'STUDENT' : pathname.includes('/academic') ? 'ACADEMIC' : 'ADMIN');
@@ -344,12 +349,12 @@ function SidebarContent() {
       {/* User Footer Profile */}
       <div className="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <UserAvatar user={user} size="sm" bordered status="online" className="shrink-0" />
+          <UserAvatar user={mounted ? user : null} size="sm" bordered status="online" className="shrink-0" />
           <div className="truncate">
-            <div className="text-xs font-semibold text-white truncate">
-              {user ? `${user.first_name} ${user.last_name}` : `${activeRole} User`}
+            <div className="text-xs font-semibold text-white truncate" suppressHydrationWarning>
+              {mounted && user ? `${user.first_name} ${user.last_name}` : `${activeRole} User`}
             </div>
-            <div className="text-[10px] text-indigo-400 truncate font-mono">
+            <div className="text-[10px] text-indigo-400 truncate font-mono" suppressHydrationWarning>
               {activeRole}
             </div>
           </div>
