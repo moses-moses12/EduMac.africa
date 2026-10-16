@@ -41,6 +41,34 @@ class ParentSerializer(serializers.ModelSerializer):
             for c in obj.children.all().select_related('user', 'current_class', 'current_stream')
         ]
 
+def generate_next_admission_number():
+    """
+    Generate sequential 12-digit admission number starting at 241711356001.
+    """
+    base_prefix = 241711356000
+    highest = base_prefix
+
+    for s in Student.objects.filter(admission_number__startswith="241711356").only('admission_number'):
+        try:
+            val = int(s.admission_number)
+            if val > highest:
+                highest = val
+        except (ValueError, TypeError):
+            continue
+
+    if highest == base_prefix:
+        total = Student.objects.count()
+        candidate_num = base_prefix + max(total + 1, 1)
+    else:
+        candidate_num = highest + 1
+
+    candidate = str(candidate_num)
+    while Student.objects.filter(admission_number=candidate).exists():
+        candidate_num += 1
+        candidate = str(candidate_num)
+
+    return candidate
+
 class StudentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     user_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
@@ -81,6 +109,88 @@ class StudentSerializer(serializers.ModelSerializer):
             'admission_date', 'is_active', 'created_at'
         ]
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+
+        # 1. Resolve current_class if string name or partial provided
+        raw_class = data.get('current_class') or data.get('class_name')
+        if raw_class:
+            try:
+                uuid.UUID(str(raw_class))
+            except (ValueError, AttributeError):
+                class_obj = Class.objects.filter(name__iexact=str(raw_class).strip()).first()
+                if not class_obj:
+                    clean_name = str(raw_class).split()[0]
+                    class_obj = Class.objects.filter(name__icontains=clean_name).first()
+                if not class_obj:
+                    class_obj = Class.objects.first()
+                if class_obj:
+                    data['current_class'] = str(class_obj.id)
+                else:
+                    data.pop('current_class', None)
+
+        # 2. Resolve current_stream if string name or partial provided
+        raw_stream = data.get('current_stream') or data.get('stream_name')
+        if raw_stream:
+            try:
+                uuid.UUID(str(raw_stream))
+            except (ValueError, AttributeError):
+                stream_obj = Stream.objects.filter(name__icontains=str(raw_stream).strip()).first()
+                if not stream_obj and data.get('current_class'):
+                    stream_obj = Stream.objects.filter(class_obj_id=data.get('current_class')).first()
+                if not stream_obj:
+                    stream_obj = Stream.objects.first()
+                if stream_obj:
+                    data['current_stream'] = str(stream_obj.id)
+                else:
+                    data.pop('current_stream', None)
+
+        # 3. Resolve academic_year if missing
+        if not data.get('academic_year'):
+            ay = AcademicYear.objects.filter(is_current=True).first() or AcademicYear.objects.first()
+            if ay:
+                data['academic_year'] = str(ay.id)
+
+        # 4. If full_name provided but first_name / last_name missing
+        if data.get('full_name') and not data.get('first_name'):
+            parts = str(data['full_name']).strip().split(' ', 1)
+            data['first_name'] = parts[0]
+            data['last_name'] = parts[1] if len(parts) > 1 else 'Student'
+
+        # 5. Ensure admission number exists and is strictly unique (format: 241711356001 and onwards)
+        raw_adm = data.get('admission_number')
+        if not raw_adm or not str(raw_adm).strip():
+            data['admission_number'] = generate_next_admission_number()
+        else:
+            adm = str(raw_adm).strip()
+            if Student.objects.filter(admission_number=adm).exists():
+                try:
+                    num = int(adm)
+                    candidate = str(num + 1)
+                    while Student.objects.filter(admission_number=candidate).exists():
+                        num += 1
+                        candidate = str(num + 1)
+                    data['admission_number'] = candidate
+                except (ValueError, TypeError):
+                    base_adm = adm
+                    counter = 1
+                    new_adm = f"{base_adm}-{counter}"
+                    while Student.objects.filter(admission_number=new_adm).exists():
+                        counter += 1
+                        new_adm = f"{base_adm}-{counter}"
+                    data['admission_number'] = new_adm
+
+        # 6. Sanitize profile_photo so non-URL strings like "stu.jpg" or empty values never trigger URLField errors
+        raw_photo = data.get('profile_photo')
+        if raw_photo:
+            val = str(raw_photo).strip()
+            if not (val.startswith('http://') or val.startswith('https://')):
+                data.pop('profile_photo', None)
+        elif 'profile_photo' in data:
+            data.pop('profile_photo', None)
+
+        return super().to_internal_value(data)
+
     def validate_gender(self, value):
         val = str(value).upper()
         if val in ['M', 'MALE']:
@@ -104,7 +214,25 @@ class StudentSerializer(serializers.ModelSerializer):
         parent_rel = validated_data.pop('parent_relationship', 'GUARDIAN')
         parent_id = validated_data.pop('parent_id', None)
 
+        # 0. Ensure unique admission number (format: 241711356001 and onwards)
         admission_number = validated_data.get('admission_number')
+        if not admission_number:
+            admission_number = generate_next_admission_number()
+        elif Student.objects.filter(admission_number=admission_number).exists():
+            try:
+                num = int(admission_number)
+                candidate = str(num + 1)
+                while Student.objects.filter(admission_number=candidate).exists():
+                    num += 1
+                    candidate = str(num + 1)
+                admission_number = candidate
+            except (ValueError, TypeError):
+                base_adm = admission_number
+                counter = 1
+                while Student.objects.filter(admission_number=admission_number).exists():
+                    admission_number = f"{base_adm}-{counter}"
+                    counter += 1
+        validated_data['admission_number'] = admission_number
 
         with transaction.atomic():
             # 1. Resolve or Create Student User Account
@@ -114,6 +242,13 @@ class StudentSerializer(serializers.ModelSerializer):
                 if not email:
                     clean_adm = admission_number.lower().replace(' ', '').replace('/', '-')
                     email = f"{clean_adm}@school.edu"
+
+                base_email = email
+                cnt = 1
+                while User.objects.filter(email=email).exists() and hasattr(User.objects.get(email=email), 'student_profile'):
+                    parts = base_email.split('@')
+                    email = f"{parts[0]}_{cnt}@{parts[1] if len(parts) > 1 else 'school.edu'}"
+                    cnt += 1
 
                 user = User.objects.filter(email=email).first()
                 if not user:
@@ -144,26 +279,41 @@ class StudentSerializer(serializers.ModelSerializer):
                 if not parent_user:
                     names = parent_name.split(' ', 1) if parent_name else ['Guardian', 'Parent']
                     p_first = names[0]
-                    p_last = names[1] if len(names) > 1 else ''
-                    parent_user = User.objects.create_user(
-                        email=p_email,
-                        password='Parent123!',
-                        first_name=p_first,
-                        last_name=p_last,
-                        role=UserRole.PARENT,
-                        phone_number=parent_phone or None
+                    p_last = names[1] if len(names) > 1 else 'Parent'
+                    try:
+                        parent_user = User.objects.create_user(
+                            email=p_email,
+                            password='Parent123!',
+                            first_name=p_first,
+                            last_name=p_last,
+                            role=UserRole.PARENT,
+                            phone_number=parent_phone or None
+                        )
+                    except Exception:
+                        parent_user = User.objects.filter(email=p_email).first()
+                if parent_user:
+                    rel_type = parent_rel if parent_rel in ['FATHER', 'MOTHER', 'GUARDIAN'] else 'GUARDIAN'
+                    parent_profile, _ = Parent.objects.get_or_create(
+                        user=parent_user,
+                        defaults={
+                            'relationship_type': rel_type,
+                            'alternate_phone': parent_phone or ''
+                        }
                     )
-                parent_profile, _ = Parent.objects.get_or_create(
-                    user=parent_user,
-                    defaults={
-                        'relationship_type': parent_rel,
-                        'alternate_phone': parent_phone or ''
-                    }
-                )
-                validated_data['parent'] = parent_profile
+                    validated_data['parent'] = parent_profile
 
             if phone_number:
                 validated_data['phone_number'] = phone_number
+
+            if not validated_data.get('current_class'):
+                first_cls = Class.objects.first()
+                if first_cls:
+                    validated_data['current_class'] = first_cls
+
+            if not validated_data.get('academic_year'):
+                current_year = AcademicYear.objects.filter(is_current=True).first() or AcademicYear.objects.first()
+                if current_year:
+                    validated_data['academic_year'] = current_year
 
             # 3. Create Student Instance
             student = Student.objects.create(**validated_data)

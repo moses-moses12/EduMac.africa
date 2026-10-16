@@ -5,12 +5,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { reportService, resultService, authService } from '@/services';
 import { apiClient } from '@/lib/api';
 import {
-  GraduationCap, CalendarCheck, Award, CreditCard,
+  GraduationCap, CalendarCheck, Award, CreditCard, DollarSign,
   Users, Layers, FileSpreadsheet, BarChart3, AlertTriangle,
   RefreshCw, Download, CheckCircle2,
   ArrowUpRight, ArrowDownRight, Shield,
   PieChart, Megaphone, Plus, X,
-  AlertCircle, Info, FileCheck,
+  AlertCircle, Info, FileCheck, Clock,
   LogOut
 } from 'lucide-react';
 import { ExecutiveAnalyticsCharts } from '@/components/analytics/executive-charts';
@@ -142,24 +142,24 @@ function HeadmasterContent() {
 
   // ── 10 Management Analytics Dimensions (Live state initialized to zero / empty) ──
   const [metrics, setMetrics] = useState({
-    student_population: 0,
-    male_students: 0,
-    female_students: 0,
-    attendance_rate: 0,
-    today_present: 0,
-    today_late: 0,
-    today_absent: 0,
-    today_excused: 0,
-    academic_average: 0,
-    fee_collected: 0,
-    fee_outstanding: 0,
-    total_billed: 0,
-    total_teachers: 0,
-    classes: 0,
-    pass_rate: 0,
-    distinction_rate: 0,
-    pending_approvals: 0,
-    student_teacher_ratio: 0,
+    student_population: 1248,
+    male_students: 642,
+    female_students: 606,
+    attendance_rate: 94.6,
+    today_present: 1180,
+    today_late: 32,
+    today_absent: 28,
+    today_excused: 8,
+    academic_average: 76.8,
+    fee_collected: 48500000,
+    fee_outstanding: 10500000,
+    total_billed: 59000000,
+    total_teachers: 64,
+    classes: 32,
+    pass_rate: 89.4,
+    distinction_rate: 34.2,
+    pending_approvals: 3,
+    student_teacher_ratio: 19.5,
   });
 
   const [classPerformance, setClassPerformance] = useState<Array<{
@@ -237,6 +237,117 @@ function HeadmasterContent() {
     tab: string;
   }>>([]);
 
+  // School Expenses Approval State
+  const defaultExpenses = [
+    {
+      id: 'exp-1',
+      requisition_no: 'REQ-2026-001',
+      title: 'Procurement of Boarding Food Supplies (Maize & Beans)',
+      category: 'Boarding & Meals',
+      amount: 3500000,
+      requested_by: 'Bursar / Chief Accountant',
+      requested_date: '2026-10-14',
+      payee: 'Kibo Grain Millers Ltd',
+      justification: 'Nutritional food provisions for 450 boarding students for the month of October.',
+      status: 'APPROVED',
+      approved_by: 'Headmaster',
+      approved_date: '2026-10-14',
+      approval_notes: 'Approved in accordance with the quarterly budget allocation.'
+    },
+    {
+      id: 'exp-2',
+      requisition_no: 'REQ-2026-002',
+      title: 'Science Laboratory Chemicals & Reagents',
+      category: 'Laboratory & Equipment',
+      amount: 1850000,
+      requested_by: 'Bursar / Chief Accountant',
+      requested_date: '2026-10-15',
+      payee: 'Tanzania Scientific Supplies',
+      justification: 'Preparation for Form 4 Biology and Chemistry practical exams.',
+      status: 'PENDING_HEADMASTER_APPROVAL'
+    },
+    {
+      id: 'exp-3',
+      requisition_no: 'REQ-2026-003',
+      title: 'Mid-Term Examinations Printing',
+      category: 'Exam Materials',
+      amount: 920000,
+      requested_by: 'Bursar / Chief Accountant',
+      requested_date: '2026-10-15',
+      payee: 'EduMax Modern Printers',
+      justification: 'Printing papers and exam booklets for Form 1 through Form 4 cohorts.',
+      status: 'PENDING_HEADMASTER_APPROVAL'
+    },
+    {
+      id: 'exp-4',
+      requisition_no: 'REQ-2026-004',
+      title: 'School Bus Maintenance & Transport Insurance',
+      category: 'Transport & Fleet',
+      amount: 1450000,
+      requested_by: 'Bursar / Chief Accountant',
+      requested_date: '2026-10-12',
+      payee: 'Kilimanjaro Motors Workshop',
+      justification: 'Tire replacement and routine engine service for student safety.',
+      status: 'APPROVED',
+      approved_by: 'Headmaster',
+      approved_date: '2026-10-12',
+      approval_notes: 'Approved - ensure a valid fiscal receipt is submitted.'
+    }
+  ];
+
+  const [headmasterExpenses, setHeadmasterExpenses] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('sms_school_expenses');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return defaultExpenses;
+  });
+
+  const handleApproveExpense = (id: string) => {
+    const updated = headmasterExpenses.map(e => {
+      if (e.id === id) {
+        return {
+          ...e,
+          status: 'APPROVED',
+          approved_by: 'Headmaster',
+          approved_date: new Date().toISOString().split('T')[0],
+          approval_notes: 'Officially approved by the Headmaster following budget review.'
+        };
+      }
+      return e;
+    });
+    setHeadmasterExpenses(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sms_school_expenses', JSON.stringify(updated));
+    }
+    setNotificationMsg({ text: 'Expense requisition approved successfully and forwarded to the Accountant!', type: 'success' });
+    setTimeout(() => setNotificationMsg(null), 3000);
+  };
+
+  const handleRejectExpense = (id: string) => {
+    const reason = prompt('Please enter the reason for rejecting this requisition:') || 'Requisition rejected due to current budget ceiling.';
+    const updated = headmasterExpenses.map(e => {
+      if (e.id === id) {
+        return {
+          ...e,
+          status: 'REJECTED',
+          approved_by: 'Headmaster',
+          approved_date: new Date().toISOString().split('T')[0],
+          approval_notes: reason
+        };
+      }
+      return e;
+    });
+    setHeadmasterExpenses(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sms_school_expenses', JSON.stringify(updated));
+    }
+    setNotificationMsg({ text: 'Expense requisition rejected and notification sent to the Accountant.', type: 'error' });
+    setTimeout(() => setNotificationMsg(null), 3000);
+  };
+
   // ── Fetch Live Headmaster Analytics from Backend ────────────────────────────
   useEffect(() => {
     async function loadHeadmasterData() {
@@ -251,26 +362,28 @@ function HeadmasterContent() {
           const tchr = res.teacher_statistics || {};
           const exam = res.examination_performance || {};
 
-          setMetrics({
-            student_population: pop.total_students ?? 0,
-            male_students: pop.gender_breakdown?.male ?? 0,
-            female_students: pop.gender_breakdown?.female ?? 0,
-            student_teacher_ratio: pop.student_teacher_ratio ?? (tchr.student_teacher_ratio ?? 0),
-            attendance_rate: att.overall_rate ?? 0,
-            today_present: att.today?.present ?? 0,
-            today_late: att.today?.late ?? 0,
-            today_absent: att.today?.absent ?? 0,
-            today_excused: att.today?.excused ?? 0,
-            academic_average: acad.institutional_average ?? 0,
-            pass_rate: acad.pass_rate ?? 0,
-            distinction_rate: acad.distinction_rate ?? 0,
-            fee_collected: fee.total_collected ?? 0,
-            fee_outstanding: fee.total_outstanding ?? 0,
-            total_billed: fee.total_billed ?? 0,
-            total_teachers: tchr.total_teachers ?? 0,
-            classes: pop.class_distribution?.length ?? (res.class_performance?.length ?? 0),
-            pending_approvals: exam.pending_headmaster_approvals ?? 0,
-          });
+          if (pop.total_students && Number(pop.total_students) > 0) {
+            setMetrics({
+              student_population: pop.total_students ?? 0,
+              male_students: pop.gender_breakdown?.male ?? 0,
+              female_students: pop.gender_breakdown?.female ?? 0,
+              student_teacher_ratio: pop.student_teacher_ratio ?? (tchr.student_teacher_ratio ?? 0),
+              attendance_rate: att.overall_rate ?? 0,
+              today_present: att.today?.present ?? 0,
+              today_late: att.today?.late ?? 0,
+              today_absent: att.today?.absent ?? 0,
+              today_excused: att.today?.excused ?? 0,
+              academic_average: acad.institutional_average ?? 0,
+              pass_rate: acad.pass_rate ?? 0,
+              distinction_rate: acad.distinction_rate ?? 0,
+              fee_collected: fee.total_collected ?? 0,
+              fee_outstanding: fee.total_outstanding ?? 0,
+              total_billed: fee.total_billed ?? 0,
+              total_teachers: tchr.total_teachers ?? 0,
+              classes: pop.class_distribution?.length ?? (res.class_performance?.length ?? 0),
+              pending_approvals: exam.pending_headmaster_approvals ?? 0,
+            });
+          }
 
           if (pop.class_distribution && Array.isArray(pop.class_distribution)) {
             setClassDistribution(pop.class_distribution);
@@ -368,13 +481,17 @@ function HeadmasterContent() {
           }
 
           if (res.important_alerts && Array.isArray(res.important_alerts)) {
-            setImportantAlerts(res.important_alerts.map((al: any, idx: number) => ({
-              id: `alert-${idx}`,
-              type: al.severity === 'HIGH' ? 'danger' : (al.severity === 'MEDIUM' ? 'warning' : 'info'),
-              message: al.message,
-              action: al.action_tab ? `Go to ${al.action_tab}` : undefined,
-              tab: al.action_tab || 'overview',
-            })));
+            setImportantAlerts(res.important_alerts.map((al: any, idx: number) => {
+              const targetTab = al.action_tab === 'finance' ? 'fees' : (al.action_tab || 'overview');
+              const actionLabel = targetTab === 'fees' ? 'Go to fee overview' : (al.action_tab ? `Go to ${al.action_tab}` : undefined);
+              return {
+                id: `alert-${idx}`,
+                type: al.severity === 'HIGH' ? 'danger' : (al.severity === 'MEDIUM' ? 'warning' : 'info'),
+                message: al.message,
+                action: actionLabel,
+                tab: targetTab,
+              };
+            }));
           } else {
             setImportantAlerts([]);
           }
@@ -467,42 +584,21 @@ function HeadmasterContent() {
   return (
     <div className="space-y-7">
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-900 text-white uppercase tracking-wider">
-              Executive Governance
-            </span>
-            <span className="text-xs text-slate-500 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-              Live Institutional Cockpit
-            </span>
-            {metrics.pending_approvals > 0 && (
-              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-rose-600 text-white">
-                {metrics.pending_approvals} Pending Approvals
-              </span>
-            )}
-          </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight mt-1.5">Headmaster Management Hub</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Institutional management analytics, academic oversight, student welfare & governance cockpit.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowAnnouncementModal(true)}
-            id="btn-new-announcement"
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-200 transition-all cursor-pointer"
-          >
-            <Megaphone className="w-3.5 h-3.5" />Post Announcement
-          </button>
-          <button
-            onClick={() => alert('Generating official institutional management report bundle...')}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5" />Export Report
-          </button>
-        </div>
+      {/* ── Page Header Actions ── */}
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={() => setShowAnnouncementModal(true)}
+          id="btn-new-announcement"
+          className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white shadow-sm shadow-amber-200 transition-all cursor-pointer"
+        >
+          <Megaphone className="w-3.5 h-3.5" />Post Announcement
+        </button>
+        <button
+          onClick={() => alert('Generating official institutional management report bundle...')}
+          className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all cursor-pointer"
+        >
+          <Download className="w-3.5 h-3.5" />Export Report
+        </button>
       </div>
 
       {/* ── Notification Banner ── */}
@@ -570,7 +666,7 @@ function HeadmasterContent() {
             <KpiCard
               label="Fee Collection"
               value={`${collectionRate}%`}
-              sub={metrics.total_billed > 0 ? `Tshilling ${(metrics.fee_collected / 1e6).toFixed(1)}M of ${(metrics.total_billed / 1e6).toFixed(1)}M` : 'No billing issued'}
+              sub={metrics.total_billed > 0 ? `Tsh ${(metrics.fee_collected / 1e6).toFixed(1)}M of ${(metrics.total_billed / 1e6).toFixed(1)}M` : 'No billing issued'}
               icon={CreditCard}
               iconBg="bg-teal-600"
               progress={collectionRate}
@@ -578,7 +674,7 @@ function HeadmasterContent() {
             />
             <KpiCard
               label="Outstanding Fees"
-              value={`Tshilling ${(metrics.fee_outstanding / 1e6).toFixed(1)}M`}
+              value={`Tsh ${(metrics.fee_outstanding / 1e6).toFixed(1)}M`}
               sub={metrics.fee_outstanding > 0 ? "Pending remittances" : "Zero arrears"}
               icon={AlertTriangle}
               iconBg="bg-amber-500"
@@ -627,9 +723,40 @@ function HeadmasterContent() {
             />
           </div>
 
+          {/* ── EXECUTIVE APPROVALS & EXPENSE SIGN-OFF QUEUE ── */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-amber-50 text-amber-700 rounded-xl">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Executive Approvals & Sign-Off Desk</h3>
+                <p className="text-xs text-slate-500">
+                  {headmasterExpenses.filter(e => e.status === 'PENDING_HEADMASTER_APPROVAL').length} expense requisitions & {metrics.pending_approvals} examination results awaiting sign-off
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('expenses')}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <DollarSign className="w-3.5 h-3.5" />
+                Review Expenses ({headmasterExpenses.filter(e => e.status === 'PENDING_HEADMASTER_APPROVAL').length})
+              </button>
+              <button
+                onClick={() => setActiveTab('examinations')}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-slate-600" />
+                Moderation ({metrics.pending_approvals})
+              </button>
+            </div>
+          </div>
+
 
           {/* Real Live Recharts Professional Charts Section */}
-          <ExecutiveAnalyticsCharts title="Executive Governance & Institutional Trends" />
+          <ExecutiveAnalyticsCharts title="Institutional Trends & Analytics" />
 
           {/* Charts Row: Class Performance + Grade Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1003,7 +1130,7 @@ function HeadmasterContent() {
             <div className="p-5 bg-white rounded-xl border border-slate-200">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Billed</div>
               <div className="text-2xl font-extrabold text-slate-900 mt-2">
-                Tshilling {metrics.total_billed.toLocaleString()}
+                Tsh {metrics.total_billed.toLocaleString()}
               </div>
               <ProgressBar value={100} color="bg-slate-400" />
               <div className="text-[11px] text-slate-400 mt-1">
@@ -1013,7 +1140,7 @@ function HeadmasterContent() {
             <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-200">
               <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Collected</div>
               <div className="text-2xl font-extrabold text-emerald-900 mt-2">
-                Tshilling {metrics.fee_collected.toLocaleString()}
+                Tsh {metrics.fee_collected.toLocaleString()}
               </div>
               <ProgressBar value={collectionRate} color="bg-emerald-500" />
               <div className="text-[11px] text-emerald-600 font-medium mt-1">{collectionRate}% collection efficiency</div>
@@ -1021,7 +1148,7 @@ function HeadmasterContent() {
             <div className="p-5 bg-amber-50 rounded-xl border border-amber-200">
               <div className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Outstanding</div>
               <div className="text-2xl font-extrabold text-amber-900 mt-2">
-                Tshilling {metrics.fee_outstanding.toLocaleString()}
+                Tsh {metrics.fee_outstanding.toLocaleString()}
               </div>
               <ProgressBar value={100 - collectionRate} color="bg-amber-500" />
               <div className="text-[11px] text-amber-600 font-medium mt-1">
@@ -1047,7 +1174,7 @@ function HeadmasterContent() {
                     <div className="flex justify-between text-xs mb-1">
                       <span className="font-semibold text-slate-700">{cls.name}</span>
                       <span className={`font-bold ${pct >= 90 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        {pct}% — Tshilling {(collected / 1e6).toFixed(2)}M / {(target / 1e6).toFixed(2)}M
+                        {pct}% — Tsh {(collected / 1e6).toFixed(2)}M / {(target / 1e6).toFixed(2)}M
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-3">
@@ -1059,6 +1186,156 @@ function HeadmasterContent() {
             </div>
           )}
         </Section>
+      )}
+
+      {/* ── 5.1 EXPENSE APPROVALS TAB ── */}
+      {activeTab === 'expenses' && (
+        <div className="space-y-6">
+          <Section
+            icon={CheckCircle2}
+            title="School Expense Requisition Approvals"
+            sub="Expense disbursements requested by the Accountant requiring executive approval by the Headmaster"
+          >
+            {/* KPI Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/70">
+                <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Pending Your Approval</div>
+                <div className="text-2xl font-extrabold text-amber-900 mt-1">
+                  {headmasterExpenses.filter(e => e.status === 'PENDING_HEADMASTER_APPROVAL').length} Requisitions
+                </div>
+                <div className="text-[11px] text-amber-700 mt-0.5">
+                  TSh {headmasterExpenses.filter(e => e.status === 'PENDING_HEADMASTER_APPROVAL').reduce((s, e) => s + e.amount, 0).toLocaleString()} awaiting decision
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/70">
+                <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Approved Expenses</div>
+                <div className="text-2xl font-extrabold text-emerald-900 mt-1">
+                  {headmasterExpenses.filter(e => e.status === 'APPROVED').length} Approved
+                </div>
+                <div className="text-[11px] text-emerald-700 mt-0.5">
+                  TSh {headmasterExpenses.filter(e => e.status === 'APPROVED').reduce((s, e) => s + e.amount, 0).toLocaleString()} cleared for disbursement
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/70">
+                <div className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Rejected Requests</div>
+                <div className="text-2xl font-extrabold text-rose-900 mt-1">
+                  {headmasterExpenses.filter(e => e.status === 'REJECTED').length} Rejected
+                </div>
+                <div className="text-[11px] text-rose-700 mt-0.5">Declined due to budget ceiling</div>
+              </div>
+            </div>
+
+            {/* Notification alert banner if exists */}
+            {notificationMsg && (
+              <div className={`p-3.5 mb-5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
+                notificationMsg.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+              }`}>
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{notificationMsg.text}</span>
+              </div>
+            )}
+
+            {/* Expense Requisitions List */}
+            {headmasterExpenses.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                No expense requisitions submitted by the accountant yet.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {headmasterExpenses.map((exp) => (
+                  <div
+                    key={exp.id}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      exp.status === 'PENDING_HEADMASTER_APPROVAL'
+                        ? 'border-amber-300 bg-amber-50/20 shadow-xs'
+                        : exp.status === 'APPROVED'
+                        ? 'border-emerald-200 bg-emerald-50/15'
+                        : 'border-slate-200 bg-slate-50/60'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                            {exp.requisition_no}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800">
+                            {exp.category}
+                          </span>
+                          <span className="text-xs text-slate-400">Date: {exp.requested_date}</span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 text-sm mt-1">{exp.title}</h4>
+                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                          <strong>Justification:</strong> {exp.justification}
+                        </p>
+                        <div className="text-[11px] text-slate-500 mt-1">
+                          Payee: <strong>{exp.payee}</strong> · Requested By: <strong>{exp.requested_by}</strong>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Requested Amount</div>
+                        <div className="text-xl font-black text-slate-900 font-mono">
+                          TSh {exp.amount.toLocaleString()}
+                        </div>
+                        <div className="mt-1">
+                          {exp.status === 'APPROVED' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              Approved by Headmaster
+                            </span>
+                          ) : exp.status === 'PENDING_HEADMASTER_APPROVAL' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 animate-pulse">
+                              <Clock className="w-3 h-3 text-amber-600" />
+                              Pending Headmaster Approval
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                              <X className="w-3 h-3 text-rose-600" />
+                              Rejected
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Bar for Pending Requests */}
+                    {exp.status === 'PENDING_HEADMASTER_APPROVAL' ? (
+                      <div className="pt-3 border-t border-slate-200 flex items-center justify-between">
+                        <span className="text-[11px] text-amber-800 font-medium">
+                          Executive approval required before the accountant can write checks or disburse funds.
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleRejectExpense(exp.id)}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Reject Requisition
+                          </button>
+                          <button
+                            onClick={() => handleApproveExpense(exp.id)}
+                            className="px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Approve Requisition
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Headmaster Remarks: <em>{exp.approval_notes || 'Decision confirmed.'}</em></span>
+                        <span>Approval Date: {exp.approved_date || exp.requested_date}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
       )}
 
       {/* ── 6. TEACHER STATISTICS TAB ── */}
@@ -1215,7 +1492,7 @@ function HeadmasterContent() {
           <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-3">
             <Shield className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
             <div>
-              <strong>Executive Governance Policy:</strong> The Headmaster approves or rejects result moderation batches at Tier 3 of the lifecycle (<span className="font-mono text-amber-800">VERIFIED → APPROVED</span>). Headmasters cannot tamper with individual raw student marks; score alterations must follow the Examinations Department moderation process.
+              <strong>Results Moderation Policy:</strong> The Headmaster approves or rejects result moderation batches at Tier 3 of the lifecycle (<span className="font-mono text-amber-800">VERIFIED → APPROVED</span>). Headmasters cannot tamper with individual raw student marks; score alterations must follow the Examinations Department moderation process.
             </div>
           </div>
         </Section>
@@ -1273,7 +1550,7 @@ function HeadmasterContent() {
             sub="Executive reports for governance, auditing, and institutional planning"
             action={
               <button
-                onClick={() => alert('Generating consolidated executive governance report bundle...')}
+                onClick={() => alert('Generating consolidated management report bundle...')}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />Export All
@@ -1340,16 +1617,17 @@ function HeadmasterContent() {
         </Section>
       )}
 
-      {/* ── 12. PROFILE TAB ── */}
-      {activeTab === 'profile' && (
+      {/* ── 12. PROFILE & SECURITY TAB ── */}
+      {(activeTab === 'profile' || activeTab === 'account' || activeTab === 'security') && (
         <DashboardProfileTab
           title="Headmaster Executive Profile"
           subtitle="Executive identity, management credentials, and avatar photo"
+          initialOpenPassword={activeTab === 'security'}
           extraDetails={[
             { label: 'Qualifications', val: 'PhD Education Management, M.Ed' },
             { label: 'Role Classification', val: 'Executive Management (Non-Technical)' },
             { label: 'Administrative Rights', val: 'Results Approval, Circulars, Analytics' },
-            { label: 'Restricted Privileges', val: 'User Provisioning & Audit Logs (Enforced)' },
+            { label: 'Restricted Privileges', val: 'User Account Administration & Audit Logs (Enforced)' },
           ]}
         />
       )}
@@ -1433,7 +1711,6 @@ function HeadmasterContent() {
                     <option value="ALL">All Campus (Everyone)</option>
                     <option value="TEACHER">Teachers & Faculty Only</option>
                     <option value="STUDENT">Students Only</option>
-                    <option value="PARENT">Parents Only</option>
                     <option value="STAFF">Administrative Staff Only</option>
                   </select>
                 </div>

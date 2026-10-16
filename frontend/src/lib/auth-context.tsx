@@ -12,7 +12,7 @@ interface AuthContextType {
   role: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password?: string) => Promise<boolean>;
+  login: (email: string, password?: string, remember?: boolean) => Promise<boolean>;
   quickLoginAs: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
   switchRole: (newRole: UserRole) => Promise<boolean>;
@@ -28,7 +28,6 @@ export const roleEmailMap: Record<UserRole, string> = {
   ACADEMIC: 'academic@school.edu',
   TEACHER: 'teacher@school.edu',
   STUDENT: 'student@school.edu',
-  PARENT: 'parent@school.edu',
   ACCOUNTANT: 'accountant@school.edu',
   LIBRARIAN: 'librarian@school.edu',
   EXAM_OFFICER: 'exam@school.edu',
@@ -113,14 +112,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser(verifiedUser);
             }
           })
-          .catch(() => {
-            // If backend rejects credentials or token expired, invalidate local session
-            localStorage.removeItem('sms_access_token');
-            localStorage.removeItem('sms_refresh_token');
-            localStorage.removeItem('sms_user');
-            document.cookie = 'sms_user_role=; path=/; max-age=0';
-            document.cookie = 'sms_access_token=; path=/; max-age=0';
-            setUser(null);
+          .catch((err: any) => {
+            // Only invalidate session if backend explicitly returned 401 or 403.
+            // If the server is offline / restarting / network error, PRESERVE session.
+            if (err?.response && (err.response.status === 401 || err.response.status === 403)) {
+              localStorage.removeItem('sms_access_token');
+              localStorage.removeItem('sms_refresh_token');
+              localStorage.removeItem('sms_user');
+              document.cookie = 'sms_user_role=; path=/; max-age=0';
+              document.cookie = 'sms_access_token=; path=/; max-age=0';
+              setUser(null);
+            } else {
+              console.warn('Backend server unreachable. Preserving active user session cache.');
+            }
           });
       }
     }
@@ -133,16 +137,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ACADEMIC: '/dashboard/academic',
       TEACHER: '/dashboard/teacher',
       STUDENT: '/dashboard/student',
-      PARENT: '/dashboard/parent',
       ACCOUNTANT: '/dashboard/accountant',
       LIBRARIAN: '/dashboard/librarian',
       EXAM_OFFICER: '/dashboard/exam',
       STAFF: '/dashboard/staff',
     };
-    router.push(roleRoutes[userRole] || '/dashboard');
+    const target = roleRoutes[userRole] || '/dashboard';
+    if (typeof window !== 'undefined') {
+      window.location.assign(target);
+    } else {
+      router.push(target);
+    }
   };
 
-  const login = async (email: string, password = 'Password123!'): Promise<boolean> => {
+  const login = async (
+    email: string,
+    password = 'Password123!',
+    remember = false
+  ): Promise<boolean> => {
     try {
       setIsLoading(true);
       const res = await apiClient.post<LoginResponse>('/auth/login/', {
@@ -157,8 +169,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('sms_access_token', tokens.access);
           localStorage.setItem('sms_refresh_token', tokens.refresh);
           localStorage.setItem('sms_user', JSON.stringify(loggedInUser));
-          document.cookie = `sms_user_role=${loggedInUser.role}; path=/; max-age=604800; SameSite=Lax`;
-          document.cookie = `sms_access_token=${tokens.access}; path=/; max-age=604800; SameSite=Lax`;
+          if (remember) {
+            localStorage.setItem('sms_remember_identifier', email);
+            localStorage.setItem('sms_remember_me', 'true');
+          } else {
+            localStorage.removeItem('sms_remember_identifier');
+            localStorage.removeItem('sms_remember_me');
+          }
+          document.cookie = `sms_user_role=${loggedInUser.role}; path=/; max-age=2592000; SameSite=Lax`;
+          document.cookie = `sms_access_token=${tokens.access}; path=/; max-age=2592000; SameSite=Lax`;
         }
         setUser(loggedInUser);
         redirectByRole(loggedInUser.role);

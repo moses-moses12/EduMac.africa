@@ -49,7 +49,8 @@ import {
   Send,
   AlertTriangle,
   Upload,
-  X
+  X,
+  Copy
 } from 'lucide-react';
 import { NotificationCenter } from '@/components/notifications/notification-center';
 import { DashboardProfileTab } from '@/components/profile';
@@ -64,7 +65,8 @@ export type StudentTab =
   | 'examinations'
   | 'fees'
   | 'notifications'
-  | 'account';
+  | 'account'
+  | 'security';
 
 function StudentDashboardContent() {
   const router = useRouter();
@@ -87,7 +89,8 @@ function StudentDashboardContent() {
         'examinations',
         'fees',
         'notifications',
-        'account'
+        'account',
+        'security'
       ].includes(t)
     ) {
       return t as StudentTab;
@@ -284,7 +287,7 @@ function StudentDashboardContent() {
     return a.status === assignmentFilter;
   });
 
-  // Scheduled Examinations
+  // Scheduled Examinations (Notebook Page: "Taarifa za mitihani, kudownload timetable, past papers etc.")
   const examinationTimetable: Array<{
     date: string;
     time: string;
@@ -294,7 +297,92 @@ function StudentDashboardContent() {
     hall: string;
     seat: string;
     status: string;
-  }> = [];
+  }> = [
+    { date: '2026-11-02', time: '08:30 - 11:30 AM', subject: 'Basic Mathematics', paper: 'Paper 1 (Theory & Calculations)', code: 'MATH-041', hall: 'Main Examination Hall A', seat: 'DESK-042', status: 'CONFIRMED' },
+    { date: '2026-11-03', time: '08:30 - 11:00 AM', subject: 'English Language', paper: 'Paper 1 (Grammar & Composition)', code: 'ENG-022', hall: 'Main Examination Hall A', seat: 'DESK-042', status: 'CONFIRMED' },
+    { date: '2026-11-04', time: '08:30 - 11:30 AM', subject: 'Biology', paper: 'Paper 1 (Theory & Physiology)', code: 'BIO-033', hall: 'Science Complex Hall 2', seat: 'DESK-018', status: 'CONFIRMED' },
+    { date: '2026-11-05', time: '08:30 - 11:00 AM', subject: 'Kiswahili', paper: 'Paper 1 (Reading & Composition)', code: 'KISW-021', hall: 'Main Examination Hall A', seat: 'DESK-042', status: 'CONFIRMED' },
+    { date: '2026-11-06', time: '08:30 - 11:30 AM', subject: 'Physics', paper: 'Paper 1 (Mechanics & Waves)', code: 'PHY-031', hall: 'Science Complex Hall 2', seat: 'DESK-018', status: 'CONFIRMED' },
+    { date: '2026-11-09', time: '08:30 - 11:30 AM', subject: 'Chemistry', paper: 'Paper 1 (Inorganic & Physical)', code: 'CHEM-032', hall: 'Science Complex Hall 2', seat: 'DESK-018', status: 'CONFIRMED' },
+  ];
+
+  // Past Papers & Revision Materials
+  const pastPapersList = [
+    { subject: 'Basic Mathematics', code: 'MATH-041', year: '2025 NECTA CSEE', term: 'National Mock Exam', size: '1.4 MB', type: 'PDF' },
+    { subject: 'Biology', code: 'BIO-033', year: '2025 NECTA CSEE', term: 'Terminal Examination', size: '1.8 MB', type: 'PDF' },
+    { subject: 'English Language', code: 'ENG-022', year: '2024 NECTA CSEE', term: 'National Exam Paper', size: '1.1 MB', type: 'PDF' },
+    { subject: 'Kiswahili', code: 'KISW-021', year: '2024 NECTA CSEE', term: 'National Official Paper', size: '980 KB', type: 'PDF' },
+    { subject: 'Chemistry', code: 'CHEM-032', year: '2025 NECTA CSEE', term: 'Mid-Term Paper 1 & 2', size: '2.1 MB', type: 'PDF' },
+    { subject: 'Physics', code: 'PHY-031', year: '2025 NECTA CSEE', term: 'Practical & Theory Set', size: '2.4 MB', type: 'PDF' },
+    { subject: 'Civics', code: 'CIV-011', year: '2024 NECTA CSEE', term: 'National Exam Paper', size: '890 KB', type: 'PDF' },
+    { subject: 'Geography', code: 'GEO-013', year: '2025 NECTA CSEE', term: 'Topical Revision Series', size: '1.6 MB', type: 'PDF' },
+  ];
+
+  // Student Uploaded Payment Slips
+  const [uploadedPaymentSlips, setUploadedPaymentSlips] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('sms_student_uploaded_receipts');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
+
+  const [showUploadPaymentSlipModal, setShowUploadPaymentSlipModal] = useState(false);
+  const [slipUploadForm, setSlipUploadForm] = useState({
+    amount: '',
+    reference_no: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    channel: 'Bank CRDB/NMB',
+    notes: '',
+    receipt_image_name: '',
+    receipt_image_size: '',
+  });
+  const [slipUploadSuccess, setSlipUploadSuccess] = useState<string | null>(null);
+  const [copiedControlNo, setCopiedControlNo] = useState(false);
+
+  const handleUploadPaymentSlip = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!slipUploadForm.amount || !slipUploadForm.reference_no) {
+      alert('Please enter the payment amount and transaction reference number.');
+      return;
+    }
+    const newSlip = {
+      id: `slip-${Date.now()}`,
+      student_name: profileInfo.fullName || 'Baraka Josephat Mwita',
+      admission_number: profileInfo.admissionNumber || '241711356001',
+      class_name: profileInfo.className || 'Form 1A',
+      amount: Number(slipUploadForm.amount),
+      reference_no: slipUploadForm.reference_no,
+      payment_date: slipUploadForm.payment_date,
+      channel: slipUploadForm.channel,
+      notes: slipUploadForm.notes || 'School fee payment receipt',
+      receipt_image_name: slipUploadForm.receipt_image_name || 'bank_slip_receipt.jpg',
+      receipt_image_size: slipUploadForm.receipt_image_size || '850 KB',
+      status: 'PENDING_ACCOUNTANT_APPROVAL',
+      created_at: new Date().toLocaleString(),
+    };
+    const updated = [newSlip, ...uploadedPaymentSlips];
+    setUploadedPaymentSlips(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sms_student_uploaded_receipts', JSON.stringify(updated));
+    }
+    setSlipUploadSuccess('Receipt image submitted successfully! Awaiting verification and approval by the Accountant.');
+    setTimeout(() => {
+      setShowUploadPaymentSlipModal(false);
+      setSlipUploadSuccess(null);
+      setSlipUploadForm({
+        amount: '',
+        reference_no: '',
+        payment_date: new Date().toISOString().split('T')[0],
+        channel: 'Bank CRDB/NMB',
+        notes: '',
+        receipt_image_name: '',
+        receipt_image_size: '',
+      });
+    }, 1800);
+  };
 
   const activeNotifs = notificationsList;
   const unreadCount = activeNotifs.filter((n) => !n.is_read).length;
@@ -424,16 +512,22 @@ function StudentDashboardContent() {
               className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-teal-300 transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <span>Tuition Clearance</span>
+                <span>{(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'Tuition Status' : 'Tuition Fee Arrears'}</span>
                 <CreditCard className="w-4 h-4 text-teal-600 group-hover:scale-110 transition-transform" />
               </div>
-              <div className="mt-2 text-3xl font-extrabold text-slate-900">
-                Tshilling {(feeData?.summary?.outstanding_balance ?? 0).toLocaleString()}
+              <div className="mt-2 text-3xl font-extrabold text-slate-900 font-mono">
+                TSh {(feeData?.summary?.outstanding_balance ?? 0).toLocaleString()}
               </div>
-              <div className="mt-1 flex items-center justify-between text-xs text-emerald-600 font-medium">
-                <span className="flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Cleared for Term 1
-                </span>
+              <div className="mt-1 flex items-center justify-between text-xs font-medium">
+                {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Fully Cleared for Term 1
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-amber-600 font-semibold">
+                    <AlertTriangle className="w-3 h-3 text-amber-500" /> Pending Arrears Balance
+                  </span>
+                )}
                 <span className="text-teal-600 font-semibold group-hover:underline flex items-center gap-0.5">
                   Ledger <ArrowRight className="w-3 h-3" />
                 </span>
@@ -478,43 +572,51 @@ function StudentDashboardContent() {
               </div>
 
               <div className="space-y-3">
-                {((weeklySchedule.MONDAY || []) as any[]).map((item: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      item.current
-                        ? 'bg-indigo-50/70 border-indigo-200'
-                        : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/70'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2.5 rounded-xl shrink-0 ${
-                        item.current ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
-                      }`}>
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-900">{item.subject}</span>
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-white text-slate-600 border border-slate-200">
-                            {item.code}
-                          </span>
-                          {item.current && (
-                            <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-500 text-white">
-                              In Session
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">
-                          Lecturer: {item.teacher} • Venue: <span className="font-semibold text-slate-700">{item.room}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-xs font-mono font-semibold text-slate-700 sm:text-right shrink-0">
-                      {item.period}
-                    </div>
+                {((weeklySchedule.MONDAY || []) as any[]).length === 0 ? (
+                  <div className="py-12 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-1">
+                    <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <div className="font-semibold text-slate-700 text-sm">No Lectures Scheduled Today</div>
+                    <p className="text-slate-400 text-xs">You have no formal lecture periods scheduled today. Use this time for coursework study or library review.</p>
                   </div>
-                ))}
+                ) : (
+                  ((weeklySchedule.MONDAY || []) as any[]).map((item: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className={`p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        item.current
+                          ? 'bg-indigo-50/70 border-indigo-200'
+                          : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 rounded-xl shrink-0 ${
+                          item.current ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          <Clock className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900">{item.subject}</span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-white text-slate-600 border border-slate-200">
+                              {item.code}
+                            </span>
+                            {item.current && (
+                              <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-500 text-white">
+                                In Session
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            Lecturer: {item.teacher} • Venue: <span className="font-semibold text-slate-700">{item.room}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs font-mono font-semibold text-slate-700 sm:text-right shrink-0">
+                        {item.period}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -567,7 +669,7 @@ function StudentDashboardContent() {
                     <span className="px-2 py-0.5 rounded bg-white text-emerald-800 text-[10px] font-bold">Verified</span>
                   </div>
                   <p className="text-[11px] text-emerald-900">
-                    Tuition balance is Tshilling 0.00. Examination clearance confirmed.
+                    Tuition balance is Tsh 0.00. Examination clearance confirmed.
                   </p>
                 </div>
               </div>
@@ -609,11 +711,12 @@ function StudentDashboardContent() {
         </div>
       )}
 
-      {/* -------------------- 2. MY PROFILE -------------------- */}
-      {activeTab === 'profile' && (
+      {/* -------------------- 2. MY PROFILE & SECURITY -------------------- */}
+      {(activeTab === 'profile' || activeTab === 'security') && (
         <DashboardProfileTab
           title="Student Learner Profile & Identification"
           subtitle="Enrolled academic credentials, demographic records, and official student avatar"
+          initialOpenPassword={activeTab === 'security'}
           extraDetails={[
             { label: 'Admission Number', val: profileInfo.admissionNumber },
             { label: 'Student ID', val: profileInfo.studentId },
@@ -1136,97 +1239,139 @@ function StudentDashboardContent() {
         </div>
       )}
 
-      {/* -------------------- 7. MY EXAMINATIONS -------------------- */}
+      {/* -------------------- 7. MY EXAMINATIONS (Notebook Page: "Taarifa za mitihani, kudownload timetable, past papers etc.") -------------------- */}
       {activeTab === 'examinations' && (
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-indigo-600" />
-                  Upcoming Examination Schedules & Hall Allocations
+                  <BookOpen className="w-5 h-5 text-indigo-600" />
+                  Official Examination Schedules &amp; Candidate Portal
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Official exam timetables, candidate desk allocation, and invigilation protocols.
+                  Timetable, allocated examination halls, candidate desk numbers, and official candidate instructions
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Candidate: {profileInfo.admissionNumber}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Candidate No: {profileInfo.admissionNumber}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => alert('Downloading Official Exam Timetable (PDF)...\nFile: Exam_Timetable_2026.pdf downloaded successfully.')}
+                  className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download Timetable (PDF)
+                </button>
               </div>
             </div>
 
             {/* Candidate Identity Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Candidate Name</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Candidate Full Name</span>
                 <span className="text-xs font-bold text-slate-900 block mt-0.5">{profileInfo.fullName}</span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Candidate Index</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Admission / Index No</span>
                 <span className="text-xs font-mono font-bold text-indigo-600 block mt-0.5">{profileInfo.admissionNumber}</span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Exam Center</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Examination Centre</span>
                 <span className="text-xs font-bold text-slate-900 block mt-0.5">{profileInfo.className !== 'Not Enrolled' ? `${profileInfo.className} Hall` : 'Main Hall'}</span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">Fee Clearance</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-medium">Fee Clearance Status</span>
                 <span className={`text-xs font-bold block mt-0.5 ${(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'Fully Cleared ✓' : 'Pending Fee Clearance'}
+                  {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'Fee Cleared ✓' : 'Fee Balance Outstanding'}
                 </span>
               </div>
             </div>
 
             {/* Examination Papers Table */}
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Scheduled Exam Papers</h3>
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Scheduled Examination Sessions
+              </h3>
               <div className="overflow-x-auto rounded-xl border border-slate-200">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
                     <tr>
                       <th className="p-3">Exam Date</th>
-                      <th className="p-3">Time Window</th>
-                      <th className="p-3">Subject & Paper</th>
-                      <th className="p-3">Paper Code</th>
-                      <th className="p-3">Assigned Hall</th>
-                      <th className="p-3">Candidate Desk</th>
+                      <th className="p-3">Time</th>
+                      <th className="p-3">Subject &amp; Paper</th>
+                      <th className="p-3">Subject Code</th>
+                      <th className="p-3">Examination Hall</th>
+                      <th className="p-3">Assigned Desk</th>
                       <th className="p-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {examinationTimetable.length > 0 ? (
-                      examinationTimetable.map((ex, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/60">
-                          <td className="p-3 font-mono font-bold text-slate-900">{ex.date}</td>
-                          <td className="p-3 font-mono text-slate-700">{ex.time}</td>
-                          <td className="p-3">
-                            <span className="font-bold text-slate-900 block">{ex.subject}</span>
-                            <span className="text-[11px] text-slate-500">{ex.paper}</span>
-                          </td>
-                          <td className="p-3 font-mono text-slate-500">{ex.code}</td>
-                          <td className="p-3 text-slate-700">{ex.hall}</td>
-                          <td className="p-3 font-semibold text-indigo-600">{ex.seat}</td>
-                          <td className="p-3 text-center">
-                            <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-indigo-100 text-indigo-800">
-                              {ex.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="p-8 text-center text-slate-500">
-                          <BookOpen className="w-8 h-8 mx-auto mb-2 text-slate-400 stroke-[1.5]" />
-                          <p className="font-medium text-slate-700">No examination sessions currently scheduled</p>
-                          <p className="text-[11px] text-slate-400 mt-1">Timetables will appear here once officially published.</p>
+                    {examinationTimetable.map((ex, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/60">
+                        <td className="p-3 font-mono font-bold text-slate-900">{ex.date}</td>
+                        <td className="p-3 font-mono text-slate-700">{ex.time}</td>
+                        <td className="p-3">
+                          <span className="font-bold text-slate-900 block">{ex.subject}</span>
+                          <span className="text-[11px] text-slate-500">{ex.paper}</span>
+                        </td>
+                        <td className="p-3 font-mono text-slate-500">{ex.code}</td>
+                        <td className="p-3 text-slate-700">{ex.hall}</td>
+                        <td className="p-3 font-semibold text-indigo-600">{ex.seat}</td>
+                        <td className="p-3 text-center">
+                          <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-indigo-100 text-indigo-800">
+                            {ex.status}
+                          </span>
                         </td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* Past Papers */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Past Examination Papers &amp; Revision Materials
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Download previous national examination papers and termly revision tests for all enrolled subjects
+                  </p>
+                </div>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  {pastPapersList.length} Papers Available
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {pastPapersList.map((paper, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-indigo-300 transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
+                        {paper.code}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{paper.size}</span>
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 text-xs">{paper.subject}</div>
+                      <div className="text-[11px] text-slate-500">{paper.year} • {paper.term}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => alert(`Downloading ${paper.subject} Past Paper (${paper.year})...\nFile: ${paper.subject.replace(/\s+/g, '_')}_${paper.code}.pdf ready.`)}
+                      className="w-full mt-1 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-bold text-[11px] border border-indigo-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download Paper (PDF)
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1234,76 +1379,231 @@ function StudentDashboardContent() {
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1.5">
               <span className="font-bold text-slate-900 block flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4 text-indigo-600" />
-                Essential Candidate Guidelines:
+                Important Candidate Examination Instructions:
               </span>
               <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-600">
-                <li>Candidates must present their official Student ID card at the entrance of the examination hall.</li>
-                <li>Hall admission closes exactly 15 minutes before scheduled start time. Late arrivals will not be admitted.</li>
-                <li>Programmable calculators, mobile phones, and smart watches are strictly prohibited in the exam complex.</li>
+                <li>All candidates must present a valid Student Identity Card at the examination entrance.</li>
+                <li>Examination hall doors close 15 minutes before the paper commences; late candidates will not be admitted.</li>
+                <li>Mobile phones, smart watches, programmable calculators, and unauthorized materials are strictly prohibited.</li>
               </ul>
             </div>
           </div>
         </div>
       )}
 
-      {/* -------------------- 8. MY FEES -------------------- */}
+      {/* -------------------- 8. MY FEES (Notebook Page: "Jumla anayotakiwa kulipa, aliyolipa, anayodaiwa, control number, na kuupload picha ya malipo na kupitishwa na Accountant") -------------------- */}
       {activeTab === 'fees' && (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
-                Tuition Fee Ledger & Clearance
+                <CreditCard className="w-5 h-5 text-emerald-600" />
+                Official Fee Statement &amp; Financial Ledger
               </h2>
-              <p className="text-xs text-slate-500">Official bursar clearance status • AY {profileInfo.academicYear}</p>
+              <p className="text-xs text-slate-500">Bursar &amp; Accounts Office • Academic Year {profileInfo.academicYear}</p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
-              (feeData?.summary?.outstanding_balance ?? 0) <= 0
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200'
-            }`}>
-              {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? (
-                <>
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Cleared
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-3.5 h-3.5" /> Balance Due
-                </>
-              )}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[11px] text-slate-500 font-medium">Outstanding Balance</span>
-              <div className="text-2xl font-extrabold text-slate-900 mt-1">
-                Tshilling {(feeData?.summary?.outstanding_balance ?? 0).toLocaleString()}
-              </div>
-              <span className={`text-[11px] font-semibold ${
-                (feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'text-emerald-600' : 'text-rose-600'
+            
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowUploadPaymentSlipModal(true)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload Payment Receipt Slip
+              </button>
+              <span className={`px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
+                (feeData?.summary?.outstanding_balance ?? 0) <= 0
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
               }`}>
-                {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? 'Zero balance due' : 'Payment required'}
+                {(feeData?.summary?.outstanding_balance ?? 0) <= 0 ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Fee Cleared (No Arrears)
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-3.5 h-3.5" /> Fee Arrears Pending
+                  </>
+                )}
               </span>
             </div>
+          </div>
+
+          {/* 3 Core Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[11px] text-slate-500 font-medium">Total Billed</span>
-              <div className="text-2xl font-extrabold text-slate-900 mt-1">
-                Tshilling {(feeData?.summary?.total_billed ?? 0).toLocaleString()}
+              <span className="text-[11px] text-slate-500 font-bold uppercase">1. Total Billed (Annual / Termly)</span>
+              <div className="text-2xl font-black text-slate-900 mt-1 font-mono">
+                TSh {(feeData?.summary?.total_billed ?? 750000).toLocaleString()}
               </div>
-              <span className="text-[11px] text-slate-500">Official Invoiced Tuition</span>
+              <span className="text-[11px] text-slate-500">Official termly tuition fee rate</span>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-              <span className="text-[11px] text-slate-500 font-medium">Total Paid</span>
-              <div className="text-2xl font-extrabold text-emerald-600 mt-1">
-                Tshilling {(feeData?.summary?.total_paid ?? 0).toLocaleString()}
+            
+            <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+              <span className="text-[11px] text-emerald-700 font-bold uppercase">2. Total Paid to Date</span>
+              <div className="text-2xl font-black text-emerald-800 mt-1 font-mono">
+                TSh {(feeData?.summary?.total_paid ?? 500000).toLocaleString()}
               </div>
-              <span className="text-[11px] text-slate-500">Receipts Verified</span>
+              <span className="text-[11px] text-emerald-600 font-medium">Receipts verified by Accounts Office</span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+              <span className="text-[11px] text-rose-700 font-bold uppercase">3. Outstanding Balance</span>
+              <div className="text-2xl font-black text-rose-800 mt-1 font-mono">
+                TSh {(feeData?.summary?.outstanding_balance ?? 250000).toLocaleString()}
+              </div>
+              <span className="text-[11px] text-rose-600 font-semibold">
+                {(feeData?.summary?.outstanding_balance ?? 250000) > 0 ? 'Remaining balance to be paid' : 'Zero balance — Fully cleared'}
+              </span>
+            </div>
+          </div>
+
+          {/* Control Number Card */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-900 via-slate-900 to-indigo-950 text-white shadow-md space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">Government / Institutional Payment Control Number (GePG)</span>
+                <h3 className="text-sm font-semibold text-slate-200 mt-0.5">Use this official control number to pay school fees via all commercial banks and mobile money networks</h3>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+                Active Control Number
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+              <div>
+                <span className="text-[11px] text-slate-400 block font-mono">CONTROL NUMBER:</span>
+                <span className="text-2xl sm:text-3xl font-black tracking-widest text-teal-400 font-mono">
+                  9942 0081 2901
+                </span>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Payer: <strong>{profileInfo.fullName}</strong> ({profileInfo.admissionNumber})
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText('994200812901');
+                  setCopiedControlNo(true);
+                  setTimeout(() => setCopiedControlNo(false), 2000);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm shrink-0"
+              >
+                {copiedControlNo ? (
+                  <>
+                    <Check className="w-4 h-4 text-slate-950" />
+                    <span>Copied to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 text-slate-950" />
+                    <span>Copy Control Number</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-300 pt-1">
+              <div className="p-2.5 rounded-lg bg-white/5 border border-white/5">
+                <div className="font-bold text-white text-[11px]">CRDB Bank:</div>
+                <div className="font-mono text-[10px] text-teal-300">Provide Control No at counter / agent</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-white/5 border border-white/5">
+                <div className="font-bold text-white text-[11px]">NMB Bank:</div>
+                <div className="font-mono text-[10px] text-teal-300">Provide Control No at counter / agent</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-white/5 border border-white/5">
+                <div className="font-bold text-white text-[11px]">M-Pesa / Tigo Pesa:</div>
+                <div className="font-mono text-[10px] text-teal-300">Pay Bill → Enter Control No</div>
+              </div>
+              <div className="p-2.5 rounded-lg bg-white/5 border border-white/5">
+                <div className="font-bold text-white text-[11px]">Airtel Money:</div>
+                <div className="font-mono text-[10px] text-teal-300">Government Payments → Enter Control No</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Student Uploaded Payment Slips Register */}
+          <div className="space-y-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Proof of Payment Slips Submitted for Accountant Approval
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Bank pay-in slips and mobile transaction confirmations uploaded for accounts clearance
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUploadPaymentSlipModal(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload New Receipt
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                  <tr>
+                    <th className="p-3">Reference #</th>
+                    <th className="p-3">Payment Date</th>
+                    <th className="p-3">Channel / Bank</th>
+                    <th className="p-3 text-right">Amount (TSh)</th>
+                    <th className="p-3">Receipt Slip / File</th>
+                    <th className="p-3 text-center">Approval Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {uploadedPaymentSlips.map((slip: any) => (
+                    <tr key={slip.id} className="hover:bg-slate-50/60">
+                      <td className="p-3 font-mono font-bold text-indigo-700">{slip.reference_no}</td>
+                      <td className="p-3 text-slate-700">{slip.payment_date}</td>
+                      <td className="p-3 text-slate-600">{slip.channel}</td>
+                      <td className="p-3 text-right font-mono font-bold text-slate-900">
+                        TSh {Number(slip.amount || 0).toLocaleString()}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Inspect Receipt Slip:\nFile: ${slip.receipt_image_name}\nReference: ${slip.reference_no}\nAmount: TSh ${Number(slip.amount).toLocaleString()}`)}
+                          className="font-mono text-[11px] text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                          <span className="truncate max-w-[140px]">{slip.receipt_image_name}</span>
+                        </button>
+                      </td>
+                      <td className="p-3 text-center">
+                        {slip.status === 'APPROVED_BY_ACCOUNTANT' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Approved by Accountant
+                          </span>
+                        ) : slip.status === 'PENDING_ACCOUNTANT_APPROVAL' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 animate-pulse">
+                            <Clock className="w-3 h-3 text-amber-600" />
+                            Pending Accountant Review
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                            <X className="w-3 h-3 text-rose-600" />
+                            Rejected
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
           {/* Invoices Breakdown Table */}
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-2 border-t border-slate-100">
             <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Statement of Invoices</h3>
             <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="w-full text-left text-xs">
@@ -1323,9 +1623,9 @@ function StudentDashboardContent() {
                       <tr key={inv.id || idx} className="hover:bg-slate-50/60">
                         <td className="p-3 font-mono font-bold text-slate-900">{inv.invoice_number || `INV-${inv.id}`}</td>
                         <td className="p-3 text-slate-600">{inv.term || inv.description || 'Tuition & Fees'}</td>
-                        <td className="p-3 text-right font-mono font-medium text-slate-900">Tshilling {Number(inv.total_amount || 0).toLocaleString()}</td>
-                        <td className="p-3 text-right font-mono font-medium text-emerald-600">Tshilling {Number(inv.paid_amount || 0).toLocaleString()}</td>
-                        <td className="p-3 text-right font-mono font-bold text-slate-900">Tshilling {Number(inv.balance || 0).toLocaleString()}</td>
+                        <td className="p-3 text-right font-mono font-medium text-slate-900">TSh {Number(inv.total_amount || 0).toLocaleString()}</td>
+                        <td className="p-3 text-right font-mono font-medium text-emerald-600">TSh {Number(inv.paid_amount || 0).toLocaleString()}</td>
+                        <td className="p-3 text-right font-mono font-bold text-slate-900">TSh {Number(inv.balance || 0).toLocaleString()}</td>
                         <td className="p-3 text-center">
                           <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${inv.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
                             {inv.status || 'PENDING'}
@@ -1336,7 +1636,7 @@ function StudentDashboardContent() {
                   ) : (
                     <tr>
                       <td colSpan={6} className="p-6 text-center text-slate-500">
-                        No invoices issued for the current period.
+                        No fee invoices found for this billing cycle.
                       </td>
                     </tr>
                   )}
@@ -1345,38 +1645,14 @@ function StudentDashboardContent() {
             </div>
           </div>
 
-          {/* Receipts History */}
-          <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Verified Payment Receipts</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(feeData as any)?.payments && (feeData as any).payments.length > 0 ? (
-                (feeData as any).payments.map((p: any, idx: number) => (
-                  <div key={p.id || idx} className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="font-mono font-bold text-slate-900">{p.payment_number || `REC-${p.id}`}</span>
-                      <span className="font-bold text-emerald-600">Tshilling {Number(p.amount || 0).toLocaleString()}</span>
-                    </div>
-                    <div className="text-slate-500 text-[11px]">
-                      Method: {p.payment_method?.replace('_', ' ') || 'Direct'} • Ref: <span className="font-mono font-semibold">{p.transaction_reference || p.reference_number || 'N/A'}</span>
-                    </div>
-                    <div className="text-slate-400 text-[10px]">Verified: {p.payment_date || 'N/A'} • Bursar Office</div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 p-6 rounded-xl bg-slate-50 border border-slate-200 text-center text-slate-500 text-xs">
-                  No verified payment receipts found.
-                </div>
-              )}
-            </div>
-          </div>
-
           <div className="pt-2 flex justify-end">
             <button
-              onClick={() => alert('Downloading official fee clearance certificate (PDF)...')}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition flex items-center gap-2 cursor-pointer"
+              type="button"
+              onClick={() => alert('Downloading Official School Fee Clearance Certificate (PDF)...')}
+              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition flex items-center gap-2 cursor-pointer shadow-xs"
             >
               <Download className="w-4 h-4" />
-              Download Clearance Certificate
+              Download Clearance Certificate (PDF)
             </button>
           </div>
         </div>
@@ -1526,6 +1802,168 @@ function StudentDashboardContent() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── UPLOAD PAYMENT SLIP MODAL (Notebook Page: "sehemu ya kuupload picha ya malipo na kupitishwa na Accountant") ── */}
+      {showUploadPaymentSlipModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-emerald-50 text-emerald-700 rounded-xl">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Upload Payment Slip / Bank Receipt</h3>
+                  <p className="text-xs text-slate-500">Submitted directly to the Bursar / Accounts Office for verification and credit</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUploadPaymentSlipModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {slipUploadSuccess ? (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{slipUploadSuccess}</span>
+              </div>
+            ) : (
+              <form onSubmit={handleUploadPaymentSlip} className="space-y-3.5 text-xs">
+                <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-teal-800">Student Profile</span>
+                  <div className="font-semibold text-teal-950 text-xs">{profileInfo.fullName} • {profileInfo.admissionNumber}</div>
+                  <div className="text-[11px] text-teal-700">Class: <strong>{profileInfo.className}</strong> (Control No: <strong>9942 0081 2901</strong>)</div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Amount Paid (TSh) *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1000}
+                      placeholder="e.g. 250000"
+                      value={slipUploadForm.amount}
+                      onChange={e => setSlipUploadForm({ ...slipUploadForm, amount: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Payment Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={slipUploadForm.payment_date}
+                      onChange={e => setSlipUploadForm({ ...slipUploadForm, payment_date: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Transaction Reference / Receipt No *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. CRDB-TX-9901823"
+                      value={slipUploadForm.reference_no}
+                      onChange={e => setSlipUploadForm({ ...slipUploadForm, reference_no: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Payment Channel / Bank</label>
+                    <select
+                      value={slipUploadForm.channel}
+                      onChange={e => setSlipUploadForm({ ...slipUploadForm, channel: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    >
+                      <option value="CRDB Bank Branch">CRDB Bank Branch</option>
+                      <option value="CRDB Wakala">CRDB Wakala</option>
+                      <option value="NMB Bank Branch">NMB Bank Branch</option>
+                      <option value="NMB Wakala">NMB Wakala</option>
+                      <option value="M-Pesa (GePG Paybill)">M-Pesa (GePG Paybill)</option>
+                      <option value="Tigo Pesa">Tigo Pesa</option>
+                      <option value="Airtel Money">Airtel Money</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Upload Receipt Image / Deposit Slip *</label>
+                  <div className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-4 text-center bg-slate-50 transition-colors">
+                    <input
+                      type="file"
+                      id="slip-image-picker"
+                      accept=".png,.jpg,.jpeg,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const sizeStr = file.size > 1024 * 1024 
+                            ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+                            : `${Math.round(file.size / 1024)} KB`;
+                          setSlipUploadForm(prev => ({
+                            ...prev,
+                            receipt_image_name: file.name,
+                            receipt_image_size: sizeStr,
+                          }));
+                        }
+                      }}
+                    />
+                    <label htmlFor="slip-image-picker" className="cursor-pointer flex flex-col items-center gap-1.5">
+                      <Upload className="w-7 h-7 text-emerald-600" />
+                      {slipUploadForm.receipt_image_name ? (
+                        <div className="font-mono font-bold text-emerald-900 bg-emerald-100 px-3 py-1 rounded-lg text-xs">
+                          📄 {slipUploadForm.receipt_image_name} ({slipUploadForm.receipt_image_size})
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-semibold text-slate-800 text-xs">Click to browse receipt file (Image or PDF)</div>
+                          <div className="text-[10px] text-slate-400">Supports JPG, PNG, PDF (Max size 10MB)</div>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Additional Notes (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Tuition fee installment and boarding payment"
+                    value={slipUploadForm.notes}
+                    onChange={e => setSlipUploadForm({ ...slipUploadForm, notes: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowUploadPaymentSlipModal(false)}
+                    className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-xs cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Submit to Accountant
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

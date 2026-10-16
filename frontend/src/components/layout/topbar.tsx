@@ -5,10 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import {
   Bell,
   Search,
-  ExternalLink,
   Shield,
-  Calendar,
-  LogOut,
   User as UserIcon,
   Settings,
   CheckCheck,
@@ -22,12 +19,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationService } from '@/services/notification.service';
 import Link from 'next/link';
 import { AvatarDropdown, UserProfileModal } from '@/components/profile';
+import { EduMaxLogoIcon } from '@/components/ui/EduMaxLogo';
 
 export function Topbar() {
-  const { user, role, logout } = useAuth();
+  const { user, role } = useAuth();
   const queryClient = useQueryClient();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileModalTab, setProfileModalTab] = useState<'avatar' | 'details' | 'security'>('avatar');
 
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -88,25 +87,17 @@ export function Topbar() {
             className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-900 focus:bg-white transition-all"
           />
         </div>
-
-        <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold shrink-0 border border-slate-200/60">
-          <Calendar className="w-3.5 h-3.5 text-slate-500" />
-          <span>AY 2026/2027 • Term 1</span>
-        </div>
       </div>
 
       {/* Right section: System links, Role badge, Notifications, and Profile menu */}
       <div className="flex items-center gap-3">
-        {/* Backend Swagger Documentation Link */}
-        <a
-          href="http://127.0.0.1:8000/api/docs/"
-          target="_blank"
-          rel="noreferrer"
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          <span>Swagger Docs</span>
-        </a>
+        {/* EduMax Institutional Brand Pill */}
+        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs">
+          <div className="w-4 h-4 flex items-center justify-center shrink-0">
+            <EduMaxLogoIcon className="w-full h-full" />
+          </div>
+          <span className="text-[11px] font-extrabold text-slate-800 tracking-tight">EduMax SMS</span>
+        </div>
 
         {/* Current Active Role Pill */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xs">
@@ -198,11 +189,17 @@ export function Topbar() {
         </div>
 
         {/* User Profile Menu Dropdown */}
-        <AvatarDropdown onOpenProfileModal={() => setShowProfileModal(true)} />
+        <AvatarDropdown
+          onOpenProfileModal={(tab = 'avatar') => {
+            setProfileModalTab(tab);
+            setShowProfileModal(true);
+          }}
+        />
 
         {/* Global User Profile & Avatar Modal */}
         <UserProfileModal
           isOpen={showProfileModal}
+          initialTab={profileModalTab}
           onClose={() => setShowProfileModal(false)}
         />
       </div>

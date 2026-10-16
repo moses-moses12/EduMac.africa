@@ -20,7 +20,6 @@ function ForbiddenContent() {
     ACADEMIC: '/dashboard/academic',
     TEACHER: '/dashboard/teacher',
     STUDENT: '/dashboard/student',
-    PARENT: '/dashboard/parent',
     ACCOUNTANT: '/dashboard/accountant',
     LIBRARIAN: '/dashboard/librarian',
     EXAM_OFFICER: '/dashboard/exam',

@@ -9,6 +9,10 @@ from .models import User, UserRole
 class UserSerializer(serializers.ModelSerializer):
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     avatar_url = serializers.SerializerMethodField()
+    employee_id = serializers.SerializerMethodField()
+    specialization = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    designation = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -16,9 +20,44 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name',
             'role', 'role_display', 'phone_number',
             'address', 'avatar', 'avatar_url', 'is_active', 'is_verified',
+            'employee_id', 'specialization', 'department', 'designation',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_employee_id(self, obj):
+        try:
+            if hasattr(obj, 'teacher_profile') and obj.teacher_profile:
+                return obj.teacher_profile.employee_id
+            if hasattr(obj, 'staff_profile') and obj.staff_profile:
+                return obj.staff_profile.employee_id
+        except Exception:
+            pass
+        return None
+
+    def get_specialization(self, obj):
+        try:
+            if hasattr(obj, 'teacher_profile') and obj.teacher_profile:
+                return obj.teacher_profile.specialization
+        except Exception:
+            pass
+        return None
+
+    def get_department(self, obj):
+        try:
+            if hasattr(obj, 'staff_profile') and obj.staff_profile:
+                return obj.staff_profile.department
+        except Exception:
+            pass
+        return None
+
+    def get_designation(self, obj):
+        try:
+            if hasattr(obj, 'staff_profile') and obj.staff_profile:
+                return obj.staff_profile.designation
+        except Exception:
+            pass
+        return None
 
     def get_avatar_url(self, obj):
         if obj.avatar:
@@ -173,21 +212,99 @@ class ResetPasswordRequestSerializer(serializers.Serializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     username = serializers.CharField(required=False, allow_blank=True)
+    employee_id = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    specialization = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    qualification = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    department = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    designation = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    gender = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
-            'role', 'phone_number', 'address', 'password'
+            'role', 'phone_number', 'address', 'password',
+            'employee_id', 'specialization', 'qualification',
+            'department', 'designation', 'gender', 'is_active'
         ]
 
     def create(self, validated_data):
+        employee_id = validated_data.pop('employee_id', None)
+        specialization = validated_data.pop('specialization', '')
+        qualification = validated_data.pop('qualification', '')
+        department = validated_data.pop('department', '')
+        designation = validated_data.pop('designation', '')
+        _gender = validated_data.pop('gender', None)
+
         password = validated_data.pop('password')
-        username = validated_data.get('username')
-        if not username:
-            validated_data['username'] = validated_data.get('email')
+        raw_username = (validated_data.get('username') or '').strip()
+        email = (validated_data.get('email') or '').strip().lower()
+        validated_data['email'] = email
+
+        if not raw_username:
+            first = validated_data.get('first_name', '').strip().lower().replace(' ', '')
+            last = validated_data.get('last_name', '').strip().lower().replace(' ', '')
+            base_user = f"{first[:1]}{last}" if (first and last) else (email.split('@')[0] if email else 'user')
+            candidate = base_user
+            idx = 1
+            while User.objects.filter(username__iexact=candidate).exists():
+                candidate = f"{base_user}{idx}"
+                idx += 1
+            validated_data['username'] = candidate
+        else:
+            validated_data['username'] = raw_username
+
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
         user.save()
+
+        # If role is TEACHER, create or update Teacher profile automatically
+        if user.role == UserRole.TEACHER:
+            try:
+                from apps.staff.models import Teacher
+                emp_id = (employee_id or '').strip()
+                if not emp_id:
+                    emp_id = f"TSC-{user.id.hex[:6].upper()}"
+                cand_emp = emp_id
+                counter = 1
+                while Teacher.objects.filter(employee_id=cand_emp).exists():
+                    cand_emp = f"{emp_id}-{counter}"
+                    counter += 1
+                Teacher.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'employee_id': cand_emp,
+                        'specialization': specialization or 'General Education',
+                        'qualification': qualification or 'Degree in Education',
+                        'is_active': user.is_active,
+                    }
+                )
+            except Exception:
+                pass
+
+        # If role is STAFF, create or update Staff profile automatically
+        elif user.role == UserRole.STAFF:
+            try:
+                from apps.staff.models import Staff
+                emp_id = (employee_id or '').strip()
+                if not emp_id:
+                    emp_id = f"STF-{user.id.hex[:6].upper()}"
+                cand_emp = emp_id
+                counter = 1
+                while Staff.objects.filter(employee_id=cand_emp).exists():
+                    cand_emp = f"{emp_id}-{counter}"
+                    counter += 1
+                Staff.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'employee_id': cand_emp,
+                        'department': department or 'Administration',
+                        'designation': designation or 'Support Staff',
+                        'is_active': user.is_active,
+                    }
+                )
+            except Exception:
+                pass
+
         return user
 

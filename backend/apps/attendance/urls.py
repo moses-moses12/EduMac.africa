@@ -1,8 +1,9 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import AttendanceViewSet, StudentMyAttendanceView
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'records', AttendanceViewSet, basename='attendance')
 router.register(r'', AttendanceViewSet, basename='attendance-root')
 

@@ -153,6 +153,12 @@ export function ExecutiveAnalyticsCharts({ title = 'Institutional Analytics & Tr
   }
 
   const isLive = data.meta?.data_source?.includes('LIVE') || data.meta?.data_source?.includes('CONNECTED');
+  const activeStudentsCount = data.enrollment_trend && data.enrollment_trend.length > 0
+    ? data.enrollment_trend[data.enrollment_trend.length - 1].enrolled
+    : 18;
+  const avgAttendance = data.attendance_trend && data.attendance_trend.length > 0
+    ? (data.attendance_trend.reduce((acc, curr) => acc + curr.rate, 0) / data.attendance_trend.length).toFixed(1)
+    : '96.9';
 
   return (
     <div className="space-y-6">
@@ -217,7 +223,7 @@ export function ExecutiveAnalyticsCharts({ title = 'Institutional Analytics & Tr
                 </div>
               </div>
               <span className="text-xs font-mono font-bold text-indigo-600">
-                Active: {data.enrollment_trend[data.enrollment_trend.length - 1]?.enrolled || 1248}
+                Active: {activeStudentsCount}
               </span>
             </div>
 
@@ -256,7 +262,7 @@ export function ExecutiveAnalyticsCharts({ title = 'Institutional Analytics & Tr
                   <p className="text-[11px] text-slate-500">Weekly present percentage (Target: 95%+)</p>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-600">Avg: 96.8%</span>
+              <span className="text-xs font-mono font-bold text-emerald-600">Avg: {avgAttendance}%</span>
             </div>
 
             <div className="h-64 w-full">
@@ -285,7 +291,7 @@ export function ExecutiveAnalyticsCharts({ title = 'Institutional Analytics & Tr
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Fee Collection vs Target</h3>
-                  <p className="text-[11px] text-slate-500">Monthly cumulative revenue realization (Tshilling)</p>
+                  <p className="text-[11px] text-slate-500">Monthly cumulative revenue realization (Tsh)</p>
                 </div>
               </div>
               <span className="text-xs font-mono font-bold text-teal-700">77% Realized</span>
@@ -298,11 +304,11 @@ export function ExecutiveAnalyticsCharts({ title = 'Institutional Analytics & Tr
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                   <YAxis tickFormatter={v => `${(v / 1000000).toFixed(1)}M`} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                   <Tooltip
-                    formatter={v => [`Tshilling ${Number(v).toLocaleString()}`, '']}
+                    formatter={v => [`Tsh ${Number(v).toLocaleString()}`, '']}
                     contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: 'none', color: '#fff', fontSize: '11px' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                  <Bar dataKey="collected" fill="#0d9488" radius={[4, 4, 0, 0]} name="Collected (Tshilling)" />
+                  <Bar dataKey="collected" fill="#0d9488" radius={[4, 4, 0, 0]} name="Collected (Tsh)" />
                   <Bar dataKey="outstanding" fill="#f43f5e" radius={[4, 4, 0, 0]} name="Outstanding Arrears" />
                 </BarChart>
               </ResponsiveContainer>

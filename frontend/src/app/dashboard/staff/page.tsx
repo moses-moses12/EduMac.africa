@@ -45,6 +45,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { DashboardProfileTab } from '@/components/profile';
+import { EduMaxLogoIcon } from '@/components/ui/EduMaxLogo';
 
 // ── Types & Interfaces ────────────────────────────────────────────────────────
 
@@ -212,7 +213,7 @@ const INITIAL_TRANSFERS: TransferItem[] = [
   {
     id: 'TRF-2026-081',
     student_name: 'David Mwangi',
-    admission_number: 'ADM-2024-112',
+    admission_number: '241711356001',
     type: 'TRANSFER_OUT',
     partner_school: 'Alliance High School',
     date: '2026-10-08',
@@ -224,7 +225,7 @@ const INITIAL_TRANSFERS: TransferItem[] = [
   {
     id: 'TRF-2026-082',
     student_name: 'Mercy Achieng',
-    admission_number: 'ADM-2025-045',
+    admission_number: '241711356002',
     type: 'TRANSFER_IN',
     partner_school: 'Pangani Girls High',
     date: '2026-10-10',
@@ -236,7 +237,7 @@ const INITIAL_TRANSFERS: TransferItem[] = [
   {
     id: 'TRF-2026-083',
     student_name: 'Samuel Kiprono',
-    admission_number: 'ADM-2024-209',
+    admission_number: '241711356003',
     type: 'TRANSFER_OUT',
     partner_school: 'Kapsabet Boys',
     date: '2026-10-12',
@@ -248,7 +249,7 @@ const INITIAL_TRANSFERS: TransferItem[] = [
   {
     id: 'TRF-2026-084',
     student_name: 'Amina Hassan',
-    admission_number: 'ADM-2025-180',
+    admission_number: '241711356004',
     type: 'TRANSFER_IN',
     partner_school: 'Mombasa Academy',
     date: '2026-10-13',
@@ -316,7 +317,7 @@ const INITIAL_DOCUMENTS: ArchiveDocument[] = [
     id: 'DOC-801',
     title: 'Certified Birth Certificate',
     student_name: 'Brian Kipchoge',
-    admission_number: 'ADM-2026-001',
+    admission_number: '241711356001',
     category: 'BIRTH_CERTIFICATE',
     upload_date: '2026-10-10',
     file_size: '1.4 MB',
@@ -326,7 +327,7 @@ const INITIAL_DOCUMENTS: ArchiveDocument[] = [
     id: 'DOC-802',
     title: 'Ministry Immunization & Health Clearance',
     student_name: 'Cynthia Wanjiku',
-    admission_number: 'ADM-2026-002',
+    admission_number: '241711356002',
     category: 'HEALTH_RECORD',
     upload_date: '2026-10-11',
     file_size: '850 KB',
@@ -336,7 +337,7 @@ const INITIAL_DOCUMENTS: ArchiveDocument[] = [
     id: 'DOC-803',
     title: 'Official School Leaving Testimonial',
     student_name: 'David Mwangi',
-    admission_number: 'ADM-2024-112',
+    admission_number: '241711356003',
     category: 'LEAVING_CERT',
     upload_date: '2026-10-08',
     file_size: '2.1 MB',
@@ -346,7 +347,7 @@ const INITIAL_DOCUMENTS: ArchiveDocument[] = [
     id: 'DOC-804',
     title: 'KCPE Official Result Slip',
     student_name: 'Emmanuel Adeyemi',
-    admission_number: 'ADM-2026-005',
+    admission_number: '241711356004',
     category: 'ACADEMIC_TRANSCRIPT',
     upload_date: '2026-10-09',
     file_size: '1.2 MB',
@@ -356,7 +357,7 @@ const INITIAL_DOCUMENTS: ArchiveDocument[] = [
     id: 'DOC-805',
     title: 'Guardian National ID Copy',
     student_name: 'Kevin Omondi',
-    admission_number: 'ADM-2026-003',
+    admission_number: '241711356005',
     category: 'NATIONAL_ID',
     upload_date: '2026-10-12',
     file_size: '980 KB',
@@ -397,7 +398,7 @@ const INITIAL_ANNOUNCEMENTS: AnnouncementNotice[] = [
 const DEFAULT_STUDENTS: StudentRecord[] = [
   {
     id: 'STU-101',
-    admission_number: 'ADM-2026-011',
+    admission_number: '241711356001',
     full_name: 'Alexander Pierce',
     class_name: 'Form 3 Senior',
     stream_name: 'Stream A (Science)',
@@ -413,7 +414,7 @@ const DEFAULT_STUDENTS: StudentRecord[] = [
   },
   {
     id: 'STU-102',
-    admission_number: 'ADM-2026-012',
+    admission_number: '241711356002',
     full_name: 'Neema Kassim',
     class_name: 'Form 2 Junior',
     stream_name: 'Stream B (Arts)',
@@ -429,7 +430,7 @@ const DEFAULT_STUDENTS: StudentRecord[] = [
   },
   {
     id: 'STU-103',
-    admission_number: 'ADM-2026-013',
+    admission_number: '241711356003',
     full_name: 'Baraka Mrema',
     class_name: 'Form 1 Freshmen',
     stream_name: 'Stream A',
@@ -445,7 +446,7 @@ const DEFAULT_STUDENTS: StudentRecord[] = [
   },
   {
     id: 'STU-104',
-    admission_number: 'ADM-2026-014',
+    admission_number: '241711356004',
     full_name: 'Sophia Makau',
     class_name: 'Form 4 Candidates',
     stream_name: 'Stream A (Science)',
@@ -461,7 +462,7 @@ const DEFAULT_STUDENTS: StudentRecord[] = [
   },
   {
     id: 'STU-105',
-    admission_number: 'ADM-2026-015',
+    admission_number: '241711356005',
     full_name: 'Daniel Kiprono',
     class_name: 'Form 2 Junior',
     stream_name: 'Stream A',
@@ -530,34 +531,37 @@ function StaffDashboardContent() {
   }, [currentTab]);
 
   // Load real student records from API if connected
-  useEffect(() => {
-    async function fetchLiveStudents() {
-      try {
-        const res = await studentService.getStudents();
-        const list = res?.results || (Array.isArray(res) ? res : []);
-        if (Array.isArray(list) && list.length > 0) {
-          const apiStudents: StudentRecord[] = list.map((s: any, idx: number) => ({
-            id: String(s.id || `API-${idx}`),
-            admission_number: s.admission_number || `ADM-2026-0${idx + 20}`,
-            full_name: `${s.user?.first_name || ''} ${s.user?.last_name || ''}`.trim() || s.admission_number || 'Pupil',
-            class_name: s.current_class?.name || 'Form 1 Freshmen',
-            stream_name: s.stream?.name || 'Main Stream',
-            gender: (s.gender || 'MALE') as 'MALE' | 'FEMALE',
-            dob: s.date_of_birth || '2011-01-01',
-            guardian_name: s.emergency_contact_name || 'Guardian',
-            guardian_phone: s.emergency_contact_phone || '+254 700 000 000',
-            guardian_relationship: 'Parent / Guardian',
-            residential_address: s.address || 'Nairobi County',
-            enrollment_date: s.admission_date || '2026-01-10',
-            status: (s.status || 'ACTIVE') as 'ACTIVE' | 'TRANSFERRED' | 'SUSPENDED',
-            fee_status: idx % 3 === 0 ? 'CLEARED' : idx % 3 === 1 ? 'PENDING' : 'OVERDUE'
-          }));
-          setStudents(apiStudents);
-        }
-      } catch (err) {
-        // Fallback gracefully to default pre-seeded records
+  const fetchLiveStudents = async () => {
+    try {
+      const res = await studentService.getStudents({ page_size: 100 });
+      const list = res?.results || (Array.isArray(res) ? res : []);
+      if (Array.isArray(list) && list.length > 0) {
+        const apiStudents: StudentRecord[] = list.map((s: any, idx: number) => ({
+          id: String(s.id || `API-${idx}`),
+          admission_number: s.admission_number || `241711356${String(idx + 1).padStart(3, '0')}`,
+          full_name: s.full_name || `${s.user?.first_name || ''} ${s.user?.last_name || ''}`.trim() || s.admission_number || 'Pupil',
+          class_name: s.class_name || (typeof s.current_class === 'object' ? s.current_class?.name : s.current_class) || 'Form 1 Freshmen',
+          stream_name: s.stream_name || (typeof s.current_stream === 'object' ? s.current_stream?.name : s.current_stream) || 'Main Stream',
+          gender: (s.gender || 'MALE') as 'MALE' | 'FEMALE',
+          dob: s.date_of_birth || '2011-01-01',
+          guardian_name: s.parent?.full_name || s.emergency_contact || 'Guardian',
+          guardian_phone: s.parent?.phone || s.emergency_contact || '+255 700 000 000',
+          guardian_relationship: s.parent?.relationship_type || 'Parent / Guardian',
+          residential_address: s.address || 'Dar es Salaam',
+          enrollment_date: s.admission_date || '2026-01-10',
+          status: (s.status || 'ACTIVE') as 'ACTIVE' | 'TRANSFERRED' | 'SUSPENDED',
+          fee_status: idx % 3 === 0 ? 'CLEARED' : idx % 3 === 1 ? 'PENDING' : 'OVERDUE'
+        }));
+        setStudents(apiStudents);
+      } else {
+        setStudents([]);
       }
+    } catch (err) {
+      setStudents([]);
     }
+  };
+
+  useEffect(() => {
     fetchLiveStudents();
   }, []);
 
@@ -614,41 +618,95 @@ function StaffDashboardContent() {
 
   // ── Action Handlers ─────────────────────────────────────────────────────────
 
-  const handleRegisterStudent = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newAdm = `ADM-2026-${String(students.length + 25).padStart(3, '0')}`;
-    const newStudent: StudentRecord = {
-      id: `STU-${Date.now()}`,
-      admission_number: newAdm,
-      full_name: newReg.full_name,
-      class_name: newReg.class_name,
-      stream_name: newReg.stream_name,
-      gender: newReg.gender,
-      dob: newReg.dob || '2011-01-01',
-      guardian_name: newReg.guardian_name,
-      guardian_phone: newReg.guardian_phone,
-      guardian_relationship: newReg.guardian_relationship,
-      residential_address: newReg.residential_address,
-      enrollment_date: new Date().toISOString().split('T')[0],
-      status: 'ACTIVE',
-      fee_status: 'PENDING'
-    };
+  const [submittingStudent, setSubmittingStudent] = useState(false);
 
-    setStudents([newStudent, ...students]);
-    setShowRegModal(false);
-    setNewReg({
-      full_name: '',
-      gender: 'MALE',
-      dob: '2011-05-15',
-      class_name: 'Form 1 Freshmen',
-      stream_name: 'Stream A (Science)',
-      previous_school: '',
-      guardian_name: '',
-      guardian_phone: '',
-      guardian_relationship: 'Parent / Mother',
-      residential_address: ''
-    });
-    showToast(`✅ ${newStudent.full_name} enrolled successfully! Allocated: ${newStudent.admission_number}`);
+  const handleRegisterStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReg.full_name) {
+      showToast('⚠️ Please enter the student\'s full name.');
+      return;
+    }
+
+    setSubmittingStudent(true);
+    try {
+      const cleanPhone = newReg.guardian_phone ? newReg.guardian_phone.replace(/[\s\-\(\)]/g, '') : undefined;
+      const payload = {
+        full_name: newReg.full_name.trim(),
+        gender: newReg.gender,
+        date_of_birth: newReg.dob || '2011-01-01',
+        class_name: newReg.class_name,
+        stream_name: newReg.stream_name,
+        parent_name: newReg.guardian_name ? newReg.guardian_name.trim() : 'Parent / Guardian',
+        parent_phone: cleanPhone,
+        parent_relationship: newReg.guardian_relationship?.toUpperCase().includes('MOTHER') ? 'MOTHER' :
+                             newReg.guardian_relationship?.toUpperCase().includes('FATHER') ? 'FATHER' : 'GUARDIAN',
+        address: newReg.residential_address || 'Dar es Salaam',
+        status: 'ACTIVE'
+      };
+
+      const created = await studentService.createStudent(payload);
+      const allocatedAdm = created.admission_number || `241711356${String(students.length + 1).padStart(3, '0')}`;
+
+      const newStudent: StudentRecord = {
+        id: String(created.id || `STU-${Date.now()}`),
+        admission_number: allocatedAdm,
+        full_name: created.full_name || newReg.full_name,
+        class_name: created.class_name || newReg.class_name,
+        stream_name: created.stream_name || newReg.stream_name,
+        gender: (created.gender || newReg.gender) as 'MALE' | 'FEMALE',
+        dob: created.date_of_birth || newReg.dob || '2011-01-01',
+        guardian_name: newReg.guardian_name,
+        guardian_phone: newReg.guardian_phone,
+        guardian_relationship: newReg.guardian_relationship,
+        residential_address: created.address || newReg.residential_address,
+        enrollment_date: created.admission_date || new Date().toISOString().split('T')[0],
+        status: 'ACTIVE',
+        fee_status: 'PENDING'
+      };
+
+      setStudents(prev => [newStudent, ...prev]);
+      setShowRegModal(false);
+      setNewReg({
+        full_name: '',
+        gender: 'MALE',
+        dob: '2011-05-15',
+        class_name: 'Form 1 Freshmen',
+        stream_name: 'Stream A (Science)',
+        previous_school: '',
+        guardian_name: '',
+        guardian_phone: '',
+        guardian_relationship: 'Parent / Mother',
+        residential_address: ''
+      });
+      showToast(`✅ ${newStudent.full_name} successfully registered in database! Admission No: ${newStudent.admission_number}`);
+      
+      // Refresh live records from backend
+      fetchLiveStudents();
+    } catch (err: any) {
+      console.error('Failed to create student in backend:', err);
+      const fallbackAdm = `241711356${String(students.length + 1).padStart(3, '0')}`;
+      const fallbackStudent: StudentRecord = {
+        id: `STU-${Date.now()}`,
+        admission_number: fallbackAdm,
+        full_name: newReg.full_name,
+        class_name: newReg.class_name,
+        stream_name: newReg.stream_name,
+        gender: newReg.gender,
+        dob: newReg.dob || '2011-01-01',
+        guardian_name: newReg.guardian_name,
+        guardian_phone: newReg.guardian_phone,
+        guardian_relationship: newReg.guardian_relationship,
+        residential_address: newReg.residential_address,
+        enrollment_date: new Date().toISOString().split('T')[0],
+        status: 'ACTIVE',
+        fee_status: 'PENDING'
+      };
+      setStudents(prev => [fallbackStudent, ...prev]);
+      setShowRegModal(false);
+      showToast(`⚠️ Student recorded locally: ${fallbackStudent.full_name} (${fallbackAdm})`);
+    } finally {
+      setSubmittingStudent(false);
+    }
   };
 
   const handleSignInVisitor = (e: React.FormEvent) => {
@@ -713,7 +771,7 @@ function StaffDashboardContent() {
 
         // If enrolled, also auto-add to active students
         if (nextStage === 'ENROLLED' && adm.stage !== 'ENROLLED') {
-          const autoAdmNum = `ADM-2026-${String(students.length + 30).padStart(3, '0')}`;
+          const autoAdmNum = `241711356${String(students.length + 1).padStart(3, '0')}`;
           setStudents(prev => [
             {
               id: `STU-${Date.now()}`,
@@ -749,7 +807,7 @@ function StaffDashboardContent() {
     const newTrf: TransferItem = {
       id: `TRF-2026-${String(transfers.length + 90).padStart(3, '0')}`,
       student_name: newTransfer.student_name,
-      admission_number: newTransfer.admission_number || `ADM-2026-${Math.floor(Math.random() * 800 + 100)}`,
+      admission_number: newTransfer.admission_number || `241711356${String(transfers.length + 1).padStart(3, '0')}`,
       type: newTransfer.type,
       partner_school: newTransfer.partner_school,
       date: new Date().toISOString().split('T')[0],
@@ -778,7 +836,7 @@ function StaffDashboardContent() {
       id: `DOC-${Math.floor(Math.random() * 800 + 100)}`,
       title: newDocUpload.title,
       student_name: newDocUpload.student_name,
-      admission_number: newDocUpload.admission_number || 'ADM-2026-011',
+      admission_number: newDocUpload.admission_number || '241711356001',
       category: newDocUpload.category,
       upload_date: new Date().toISOString().split('T')[0],
       file_size: '1.8 MB',
@@ -1387,11 +1445,14 @@ function StaffDashboardContent() {
                 onChange={e => setClassFilter(e.target.value)}
                 className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-semibold"
               >
-                <option value="ALL">All Forms</option>
+                <option value="ALL">All Classes / Grades</option>
                 <option value="Form 1">Form 1</option>
                 <option value="Form 2">Form 2</option>
                 <option value="Form 3">Form 3</option>
                 <option value="Form 4">Form 4</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
               </select>
 
               <select
@@ -1924,12 +1985,13 @@ function StaffDashboardContent() {
       )}
 
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {/* TAB 11: RECEPTION STAFF PROFILE                                          */}
+      {/* TAB 11: RECEPTION STAFF PROFILE & SECURITY                                */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {activeTab === 'profile' && (
+      {(activeTab === 'profile' || activeTab === 'account' || activeTab === 'security') && (
         <DashboardProfileTab
           title="Reception Secretariat & Front-Office Staff Profile"
           subtitle="Institutional front-desk credentials, security post clearance, and duty allocations"
+          initialOpenPassword={activeTab === 'security'}
           extraDetails={[
             { label: 'Staff Official ID', val: 'STF-2023-018' },
             { label: 'Department Division', val: 'Front-Office Secretariat & Admissions Support' },
@@ -2035,6 +2097,9 @@ function StaffDashboardContent() {
                     <option value="Form 2 Junior">Form 2 Junior</option>
                     <option value="Form 3 Senior">Form 3 Senior</option>
                     <option value="Form 4 Candidates">Form 4 Candidates</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
                   </select>
                 </div>
                 <div>
@@ -2066,22 +2131,20 @@ function StaffDashboardContent() {
                 <span className="font-extrabold text-slate-900 block text-xs">Parent / Guardian Legal Information:</span>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Guardian Full Name *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Guardian Full Name</label>
                     <input
                       type="text"
-                      required
-                      placeholder="e.g. Mary Mutiso"
+                      placeholder="e.g. Mary Mutiso (Optional)"
                       value={newReg.guardian_name}
                       onChange={e => setNewReg({ ...newReg, guardian_name: e.target.value })}
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium"
                     />
                   </div>
                   <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Guardian Mobile Phone *</label>
+                    <label className="font-semibold text-slate-700 block mb-1">Guardian Mobile Phone</label>
                     <input
                       type="tel"
-                      required
-                      placeholder="+254 7..."
+                      placeholder="e.g. 0712 345 678 (Optional)"
                       value={newReg.guardian_phone}
                       onChange={e => setNewReg({ ...newReg, guardian_phone: e.target.value })}
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 font-bold"
@@ -2236,7 +2299,7 @@ function StaffDashboardContent() {
             </div>
 
             <div className="p-5 border-2 border-dashed border-sky-400 bg-sky-50/50 rounded-2xl space-y-3 text-slate-900">
-              <div className="text-[10px] font-extrabold tracking-widest text-sky-800 uppercase">Apex Academy Campus Security</div>
+              <div className="text-[10px] font-extrabold tracking-widest text-sky-800 uppercase">EduMax Campus Security</div>
               <div className="text-3xl font-black font-mono tracking-tight text-sky-900">{selectedVisitorPass.badge_number}</div>
               <div className="pt-1">
                 <h4 className="font-extrabold text-base text-slate-900">{selectedVisitorPass.full_name}</h4>
@@ -2406,8 +2469,8 @@ function StaffDashboardContent() {
 
             <div className="p-6 border-4 border-double border-slate-300 bg-amber-50/20 rounded-2xl space-y-4 text-slate-900">
               <div className="text-center space-y-1">
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Republic of Kenya • Ministry of Education</div>
-                <h3 className="text-lg font-black tracking-tight text-slate-900 uppercase">Apex Academy Senior School</h3>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ministry of Education • Accreditation Board</div>
+                <h3 className="text-lg font-black tracking-tight text-slate-900 uppercase">EduMax Senior School</h3>
                 <div className="text-[11px] font-bold text-sky-800">OFFICIAL SCHOOL LEAVING CERTIFICATE</div>
                 <div className="text-[10px] font-mono text-slate-400">Serial Ref: {selectedLeavingCert.id}</div>
               </div>
@@ -2476,7 +2539,7 @@ function StaffDashboardContent() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">Apex Pupil Dossier</span>
+              <span className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">EduMax Pupil Dossier</span>
               <button onClick={() => setSelectedStudentProfile(null)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
@@ -2567,7 +2630,7 @@ function StaffDashboardContent() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-xs text-center">
             <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-              <span className="font-mono text-[10px] text-slate-400 font-bold uppercase">Apex Student Identity Card</span>
+              <span className="font-mono text-[10px] text-slate-400 font-bold uppercase">EduMax Student Identity Card</span>
               <button onClick={() => setSelectedStudentIdCard(null)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
@@ -2576,11 +2639,11 @@ function StaffDashboardContent() {
             <div className="p-5 border border-slate-300 bg-gradient-to-br from-sky-900 via-sky-800 to-indigo-950 text-white rounded-2xl space-y-3 shadow-xl">
               <div className="flex justify-between items-center border-b border-sky-400/30 pb-2">
                 <div className="text-left">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-sky-300">Apex Academy</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-sky-300">EduMax Schools</div>
                   <div className="text-[8px] text-sky-200">Official Student Card</div>
                 </div>
-                <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                  <GraduationCap className="w-3.5 h-3.5 text-sky-300" />
+                <div className="w-7 h-7 p-0.5 rounded-lg bg-white shadow-sm flex items-center justify-center shrink-0">
+                  <EduMaxLogoIcon className="w-full h-full" />
                 </div>
               </div>
 
@@ -2733,7 +2796,7 @@ function StaffDashboardContent() {
                   <label className="font-semibold text-slate-700 block mb-1">Admission Number</label>
                   <input
                     type="text"
-                    placeholder="e.g. ADM-2026-011"
+                    placeholder="e.g. 241711356001"
                     value={newDocUpload.admission_number}
                     onChange={e => setNewDocUpload({ ...newDocUpload, admission_number: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium font-mono"
@@ -2812,11 +2875,11 @@ function StaffDashboardContent() {
                     const tmpl = e.target.value;
                     let msg = '';
                     if (tmpl === 'MEETING') {
-                      msg = `Dear ${selectedGuardianForSms.name}, please attend a parent-teacher briefing regarding ${selectedGuardianForSms.ward} on Friday at 10:00 AM. Apex Academy.`;
+                      msg = `Dear ${selectedGuardianForSms.name}, please attend a parent-teacher briefing regarding ${selectedGuardianForSms.ward} on Friday at 10:00 AM. EduMax Schools.`;
                     } else if (tmpl === 'FEES') {
-                      msg = `Dear ${selectedGuardianForSms.name}, this is a gentle reminder that school fee statement for ${selectedGuardianForSms.ward} is due. Please visit reception or accounts. Apex Academy.`;
+                      msg = `Dear ${selectedGuardianForSms.name}, this is a gentle reminder that school fee statement for ${selectedGuardianForSms.ward} is due. Please visit reception or accounts. EduMax Schools.`;
                     } else if (tmpl === 'VISITING') {
-                      msg = `Dear ${selectedGuardianForSms.name}, Annual Visiting Day is scheduled for Saturday 24th Oct. Gate passes available at reception. Apex Academy.`;
+                      msg = `Dear ${selectedGuardianForSms.name}, Annual Visiting Day is scheduled for Saturday 24th Oct. Gate passes available at reception. EduMax Schools.`;
                     }
                     setSmsDraft({ template: tmpl, message: msg });
                   }}

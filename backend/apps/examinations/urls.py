@@ -1,3 +1,4 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
@@ -9,7 +10,7 @@ from .views import (
     ExaminationSubjectViewSet
 )
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'grades', GradeViewSet, basename='grade')
 router.register(r'types', ExaminationTypeViewSet, basename='examination-type')
 router.register(r'periods', ExaminationPeriodViewSet, basename='examination-period')

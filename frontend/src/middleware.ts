@@ -34,11 +34,6 @@ const ROUTE_RULES: RouteRule[] = [
     canonicalDashboard: '/dashboard/student',
   },
   {
-    pattern: /^\/(?:dashboard\/)?parent(?:\/.*)?$/,
-    allowedRoles: ['PARENT'],
-    canonicalDashboard: '/dashboard/parent',
-  },
-  {
     pattern: /^\/(?:dashboard\/)?accountant(?:\/.*)?$/,
     allowedRoles: ['ACCOUNTANT'],
     canonicalDashboard: '/dashboard/accountant',
@@ -119,7 +114,6 @@ export const config = {
     '/academic/:path*',
     '/teacher/:path*',
     '/student/:path*',
-    '/parent/:path*',
     '/accountant/:path*',
     '/librarian/:path*',
     '/examination/:path*',

@@ -28,14 +28,20 @@ class ReceiptSerializer(serializers.ModelSerializer):
     amount = serializers.DecimalField(source='payment.amount', max_digits=12, decimal_places=2, read_only=True)
     payment_method = serializers.CharField(source='payment.get_payment_method_display', read_only=True)
 
+    student_name = serializers.CharField(source='payment.invoice.student.user.get_full_name', read_only=True)
+    admission_number = serializers.CharField(source='payment.invoice.student.admission_number', read_only=True)
+    class_name = serializers.CharField(source='payment.invoice.student.current_class.name', read_only=True)
+
     class Meta:
         model = Receipt
-        fields = ['id', 'receipt_number', 'payment', 'amount', 'payment_method', 'issued_date', 'notes']
+        fields = ['id', 'receipt_number', 'payment', 'amount', 'payment_method', 'issued_date', 'notes', 'student_name', 'admission_number', 'class_name']
 
 class PaymentSerializer(serializers.ModelSerializer):
     receipt = ReceiptSerializer(read_only=True)
     invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
     student_name = serializers.CharField(source='invoice.student.user.get_full_name', read_only=True)
+    admission_number = serializers.CharField(source='invoice.student.admission_number', read_only=True)
+    class_name = serializers.CharField(source='invoice.student.current_class.name', read_only=True)
     payment_date = serializers.DateField(required=False, default=timezone.localdate)
     received_by_name = serializers.CharField(source='received_by.get_full_name', read_only=True)
 
@@ -43,6 +49,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = [
             'id', 'payment_number', 'invoice', 'invoice_number', 'student_name',
+            'admission_number', 'class_name',
             'amount', 'payment_method', 'transaction_reference',
             'payment_date', 'received_by', 'received_by_name',
             'notes', 'created_at', 'receipt'

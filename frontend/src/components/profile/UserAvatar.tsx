@@ -31,7 +31,6 @@ const ROLE_COLOR_PALETTE: Record<string, { bg: string; text: string; border: str
   ACADEMIC: { bg: 'bg-cyan-900/90 text-cyan-100', text: 'text-cyan-100', border: 'border-cyan-700/60' },
   TEACHER: { bg: 'bg-emerald-900/90 text-emerald-100', text: 'text-emerald-100', border: 'border-emerald-700/60' },
   STUDENT: { bg: 'bg-indigo-900/90 text-indigo-100', text: 'text-indigo-100', border: 'border-indigo-700/60' },
-  PARENT: { bg: 'bg-purple-900/90 text-purple-100', text: 'text-purple-100', border: 'border-purple-700/60' },
   ACCOUNTANT: { bg: 'bg-teal-900/90 text-teal-100', text: 'text-teal-100', border: 'border-teal-700/60' },
   LIBRARIAN: { bg: 'bg-orange-900/90 text-orange-100', text: 'text-orange-100', border: 'border-orange-700/60' },
   EXAM_OFFICER: { bg: 'bg-pink-900/90 text-pink-100', text: 'text-pink-100', border: 'border-pink-700/60' },
@@ -68,8 +67,13 @@ export function UserAvatar({
   bordered = true,
   status = null,
 }: UserAvatarProps) {
+  const [mounted, setMounted] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Normalize image source URL
   const rawImageUrl = user?.avatar_url || user?.avatar || null;
@@ -101,15 +105,36 @@ export function UserAvatar({
 
   const accessibleAlt = alt || `${fullName}'s Profile Avatar`;
 
+  if (!mounted) {
+    return (
+      <div
+        className={`relative inline-flex items-center justify-center shrink-0 select-none rounded-full ${sizeConfig.container} ${className}`}
+        aria-hidden="true"
+        suppressHydrationWarning
+      >
+        <div
+          className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-800 text-slate-300 ${
+            bordered ? 'border border-slate-700 shadow-xs' : ''
+          }`}
+          suppressHydrationWarning
+        >
+          <UserIcon className={sizeConfig.icon} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`relative inline-flex items-center justify-center shrink-0 select-none rounded-full ${sizeConfig.container} ${className}`}
       aria-label={accessibleAlt}
+      suppressHydrationWarning
     >
       <div
         className={`w-full h-full rounded-full overflow-hidden flex items-center justify-center transition-all ${
           bordered ? `border ${colorTheme.border} shadow-xs` : ''
         }`}
+        suppressHydrationWarning
       >
         {imageUrl && !hasError ? (
           <>
@@ -141,13 +166,15 @@ export function UserAvatar({
           <div
             className={`w-full h-full flex items-center justify-center ${colorTheme.bg} font-bold tracking-wider`}
             title={fullName}
+            suppressHydrationWarning
           >
-            <span className={sizeConfig.text}>{initials}</span>
+            <span className={sizeConfig.text} suppressHydrationWarning>{initials}</span>
           </div>
         ) : (
           <div
             className={`w-full h-full flex items-center justify-center bg-slate-800 text-slate-300`}
             title={fullName}
+            suppressHydrationWarning
           >
             <UserIcon className={sizeConfig.icon} />
           </div>

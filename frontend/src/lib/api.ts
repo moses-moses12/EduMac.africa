@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' ? '/api/v1' : 'http://127.0.0.1:8000/api/v1');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -57,13 +59,17 @@ apiClient.interceptors.response.use(
               originalRequest.headers.Authorization = `Bearer ${newAccess}`;
             }
             return apiClient(originalRequest);
-          } catch {
-            localStorage.removeItem('sms_access_token');
-            localStorage.removeItem('sms_refresh_token');
-            localStorage.removeItem('sms_user');
-            if (window.location.pathname !== '/login') {
-              // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-              window.location.assign('/login?expired=true');
+          } catch (refreshErr: any) {
+            // Only clear tokens if the refresh endpoint explicitly rejected with 401 / 400
+            // If the server is offline or restarting (network error), do NOT wipe stored tokens!
+            if (refreshErr?.response && (refreshErr.response.status === 401 || refreshErr.response.status === 400)) {
+              localStorage.removeItem('sms_access_token');
+              localStorage.removeItem('sms_refresh_token');
+              localStorage.removeItem('sms_user');
+              if (window.location.pathname !== '/login') {
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                window.location.assign('/login?expired=true');
+              }
             }
           }
         }
@@ -160,7 +166,6 @@ export const demoAccounts = [
   { role: 'ACADEMIC', username: 'academic', email: 'academic@school.edu', password: 'Password123!', label: 'Academic Officer', desc: 'Curriculum, classes, subjects & timetable' },
   { role: 'TEACHER', username: 'teacher', email: 'teacher@school.edu', password: 'Password123!', label: 'Teacher', desc: 'Attendance, grading marksheets & assignments' },
   { role: 'STUDENT', username: 'student', email: 'student@school.edu', password: 'Password123!', label: 'Student', desc: 'Results, schedule, fee statement & library' },
-  { role: 'PARENT', username: 'parent', email: 'parent@school.edu', password: 'Password123!', label: 'Parent / Guardian', desc: 'Children performance, attendance & payments' },
   { role: 'ACCOUNTANT', username: 'accountant', email: 'accountant@school.edu', password: 'Password123!', label: 'Finance / Bursar', desc: 'Fee structures, invoices, payments & receipts' },
   { role: 'LIBRARIAN', username: 'librarian', email: 'librarian@school.edu', password: 'Password123!', label: 'Librarian', desc: 'Book catalog, lending lifecycle & overdue fines' },
   { role: 'EXAM_OFFICER', username: 'exam', email: 'exam@school.edu', password: 'Password123!', label: 'Examinations Officer', desc: 'Exam schedules, grading rubrics & report cards' },

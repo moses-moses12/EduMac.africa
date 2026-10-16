@@ -1,3 +1,4 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
@@ -9,7 +10,7 @@ from .views import (
     StudentMyFeesView
 )
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'structures', FeeStructureViewSet, basename='fee-structure')
 router.register(r'items', FeeItemViewSet, basename='fee-item')
 router.register(r'invoices', InvoiceViewSet, basename='invoice')

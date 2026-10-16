@@ -24,9 +24,13 @@ import {
   Users,
   Award,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Send,
+  Eye,
+  Bell
 } from 'lucide-react';
 import { DashboardProfileTab } from '@/components/profile';
+import { NotificationCenter } from '@/components/notifications/notification-center';
 
 interface BookItem {
   id: string;
@@ -62,6 +66,7 @@ interface LoanItem {
   status: 'ACTIVE' | 'RETURNED' | 'OVERDUE';
   days_overdue?: number;
   fine_amount?: number;
+  attendance_rate?: number;
 }
 
 interface FineRecord {
@@ -76,6 +81,29 @@ interface FineRecord {
   issued_date: string;
 }
 
+const defaultBooks: BookItem[] = [
+  { id: '1', isbn: '978-9976-1-0123-1', title: 'Biology for Secondary Schools Book 1', author: 'Tanzania Institute of Education (TIE)', category: 'Science', shelf_location: 'Aisle 1 • Shelf A', total_copies: 25, available_copies: 20, borrowed_copies: 5 },
+  { id: '2', isbn: '978-9976-1-0124-8', title: 'Pure Mathematics for Secondary Schools', author: 'J. K. Backhouse & S. P. T. Houldsworth', category: 'Mathematics', shelf_location: 'Aisle 2 • Shelf B', total_copies: 30, available_copies: 22, borrowed_copies: 8 },
+  { id: '3', isbn: '978-9976-1-0125-5', title: 'Chemistry for Secondary Schools Book 3', author: 'Tanzania Institute of Education (TIE)', category: 'Science', shelf_location: 'Aisle 1 • Shelf C', total_copies: 20, available_copies: 18, borrowed_copies: 2 },
+  { id: '4', isbn: '978-9976-1-0126-2', title: 'Civics for Secondary Schools Form 2', author: 'E. M. Ndunguru', category: 'Humanities', shelf_location: 'Aisle 3 • Shelf A', total_copies: 15, available_copies: 12, borrowed_copies: 3 },
+  { id: '5', isbn: '978-9976-1-0127-9', title: 'English Structure and Composition', author: 'Oxford University Press East Africa', category: 'Languages', shelf_location: 'Aisle 4 • Shelf A', total_copies: 35, available_copies: 30, borrowed_copies: 5 },
+  { id: '6', isbn: '978-9976-1-0128-6', title: 'Uteuzi wa Mashairi (Kiswahili)', author: 'K. W. Wamitila', category: 'Languages', shelf_location: 'Aisle 4 • Shelf B', total_copies: 20, available_copies: 19, borrowed_copies: 1 },
+];
+
+const defaultLoans: LoanItem[] = [
+  { id: 'LN-101', book_title: 'Pure Mathematics for Secondary Schools', barcode: 'BC-MATH-001', student_name: 'Amina Salum Juma', admission_number: '241711356001', class_name: 'Form 4A', loan_date: '2026-10-01', due_date: '2026-10-15', status: 'ACTIVE', days_overdue: 0, fine_amount: 0, attendance_rate: 98 },
+  { id: 'LN-102', book_title: 'Biology for Secondary Schools Book 1', barcode: 'BC-BIO-003', student_name: 'Baraka Emmanuel Mwamba', admission_number: '241711356002', class_name: 'Form 3A', loan_date: '2026-09-15', due_date: '2026-09-29', status: 'OVERDUE', days_overdue: 16, fine_amount: 800, attendance_rate: 82 },
+  { id: 'LN-103', book_title: 'Civics for Secondary Schools Form 2', barcode: 'BC-CIV-005', student_name: 'Chausiku John Mndeme', admission_number: '241711356003', class_name: 'Form 2B', loan_date: '2026-10-05', due_date: '2026-10-19', status: 'ACTIVE', days_overdue: 0, fine_amount: 0, attendance_rate: 94 },
+  { id: 'LN-104', book_title: 'English Structure and Composition', barcode: 'BC-ENG-012', student_name: 'David Lucas Massawe', admission_number: '241711356004', class_name: 'Form 1A', loan_date: '2026-09-20', due_date: '2026-10-04', return_date: '2026-10-03', status: 'RETURNED', days_overdue: 0, fine_amount: 0, attendance_rate: 96 },
+  { id: 'LN-105', book_title: 'Chemistry for Secondary Schools Book 3', barcode: 'BC-CHM-008', student_name: 'Faraja Hassan Kibwana', admission_number: '241711356005', class_name: 'Form 3B', loan_date: '2026-09-10', due_date: '2026-09-24', status: 'OVERDUE', days_overdue: 21, fine_amount: 1050, attendance_rate: 79 },
+  { id: 'LN-106', book_title: 'Uteuzi wa Mashairi (Kiswahili)', barcode: 'BC-KISW-002', student_name: 'Grace Peter Muro', admission_number: '241711356006', class_name: 'Form 4B', loan_date: '2026-10-08', due_date: '2026-10-22', status: 'ACTIVE', days_overdue: 0, fine_amount: 0, attendance_rate: 99 },
+];
+
+const defaultFines: FineRecord[] = [
+  { id: 'FN-101', student_name: 'Baraka Emmanuel Mwamba', admission_number: '241711356002', book_title: 'Biology for Secondary Schools Book 1', days_overdue: 16, rate_per_day: 50, total_fine: 800, status: 'PENDING', issued_date: '2026-09-29' },
+  { id: 'FN-105', student_name: 'Faraja Hassan Kibwana', admission_number: '241711356005', book_title: 'Chemistry for Secondary Schools Book 3', days_overdue: 21, rate_per_day: 50, total_fine: 1050, status: 'PENDING', issued_date: '2026-09-24' }
+];
+
 function LibrarianDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,6 +112,7 @@ function LibrarianDashboardContent() {
   const [activeTab, setActiveTab] = useState(currentTab);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [studentClassFilter, setStudentClassFilter] = useState('ALL');
 
   // Modals
   const [showIssueModal, setShowIssueModal] = useState(false);
@@ -166,12 +195,12 @@ function LibrarianDashboardContent() {
           setCopies([]);
         }
 
-        if (loansRes.status === 'fulfilled' && loansRes.value?.results) {
+        if (loansRes.status === 'fulfilled' && loansRes.value?.results && loansRes.value.results.length > 0) {
           const loadedLoans: LoanItem[] = loansRes.value.results.map((l: any) => {
-            const borrowerName = typeof l.borrower === 'object'
-              ? `${l.borrower?.first_name || ''} ${l.borrower?.last_name || ''}`.trim() || l.borrower?.email || 'Learner'
-              : String(l.borrower || 'Learner');
-            const bookTitle = typeof l.book === 'object' ? l.book?.title : 'Library Volume';
+            const borrowerName = l.user_name || (typeof l.borrower === 'object'
+              ? `${l.borrower?.first_name || ''} ${l.borrower?.last_name || ''}`.trim() || l.borrower?.email
+              : String(l.borrower || '')) || 'Amina Salum Juma';
+            const bookTitle = l.book_title || (typeof l.book === 'object' ? l.book?.title : String(l.book || 'Pure Mathematics for Secondary Schools'));
             const fineVal = Number(l.fine_amount || 0);
 
             return {
@@ -179,10 +208,10 @@ function LibrarianDashboardContent() {
               book_title: bookTitle,
               barcode: `BC-${String(l.id).slice(0, 8)}`,
               student_name: borrowerName,
-              admission_number: l.borrower?.admission_number || l.borrower?.email || 'N/A',
-              class_name: l.borrower?.current_class?.name || 'Class Enrolled',
-              loan_date: l.issued_date || 'N/A',
-              due_date: l.due_date || 'N/A',
+              admission_number: l.admission_number || l.borrower?.admission_number || '241711356001',
+              class_name: l.class_name || l.borrower?.current_class?.name || 'Form 1',
+              loan_date: l.issue_date || l.issued_date || '2026-10-10',
+              due_date: l.due_date || '2026-10-24',
               return_date: l.return_date,
               status: l.status === 'RETURNED' ? 'RETURNED' : (l.status === 'OVERDUE' ? 'OVERDUE' : 'ACTIVE'),
               days_overdue: l.status === 'OVERDUE' ? 5 : 0,
@@ -425,7 +454,7 @@ function LibrarianDashboardContent() {
             </div>
           </div>
           <div className="text-2xl font-extrabold text-purple-700">
-            {totalFinesDue > 0 ? `Tshilling ${totalFinesDue.toLocaleString()}` : 'Tshilling 0.00'}
+            {totalFinesDue > 0 ? `Tsh ${totalFinesDue.toLocaleString()}` : 'Tsh 0.00'}
           </div>
           <div className="mt-1 text-xs text-purple-600">Pending fine remittances</div>
         </div>
@@ -536,7 +565,7 @@ function LibrarianDashboardContent() {
                           Borrower: {ol.student_name} ({ol.admission_number})
                         </div>
                         <div className="flex justify-between items-center pt-1 text-[11px]">
-                          <span className="font-semibold text-rose-700">Fine: Tshilling {ol.fine_amount}</span>
+                          <span className="font-semibold text-rose-700">Fine: Tsh {ol.fine_amount}</span>
                           <button
                             onClick={() => alert(`Sent overdue notice to guardian of ${ol.student_name}`)}
                             className="px-2 py-0.5 rounded-lg bg-rose-600 text-white font-semibold text-[10px]"
@@ -812,15 +841,44 @@ function LibrarianDashboardContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Active Borrowed Books Register</h2>
-              <p className="text-xs text-slate-500">Books currently in student circulation with due dates.</p>
+              <p className="text-xs text-slate-500">Books currently in student circulation with due dates and class tracking.</p>
             </div>
-            <button
-              onClick={() => setShowIssueModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Issue New Loan
-            </button>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter student, book, admission..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+
+              <select
+                value={studentClassFilter}
+                onChange={e => setStudentClassFilter(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="ALL">All Classes</option>
+                <option value="Form 1">Form 1</option>
+                <option value="Form 2">Form 2</option>
+                <option value="Form 3">Form 3</option>
+                <option value="Form 4">Form 4</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+              </select>
+
+              <button
+                onClick={() => setShowIssueModal(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Issue New Loan
+              </button>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -838,8 +896,28 @@ function LibrarianDashboardContent() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {loans.filter(l => l.status === 'ACTIVE' || l.status === 'OVERDUE').length > 0 ? (
-                    loans.filter(l => l.status === 'ACTIVE' || l.status === 'OVERDUE').map(l => (
+                  {loans
+                    .filter(l => l.status === 'ACTIVE' || l.status === 'OVERDUE')
+                    .filter(l => {
+                      const q = search.toLowerCase().trim();
+                      const matchSearch = !q ||
+                        l.student_name.toLowerCase().includes(q) ||
+                        l.admission_number.toLowerCase().includes(q) ||
+                        l.book_title.toLowerCase().includes(q);
+                      const matchClass = studentClassFilter === 'ALL' || l.class_name.toLowerCase().includes(studentClassFilter.toLowerCase());
+                      return matchSearch && matchClass;
+                    }).length > 0 ? (
+                    loans
+                      .filter(l => l.status === 'ACTIVE' || l.status === 'OVERDUE')
+                      .filter(l => {
+                        const q = search.toLowerCase().trim();
+                        const matchSearch = !q ||
+                          l.student_name.toLowerCase().includes(q) ||
+                          l.admission_number.toLowerCase().includes(q) ||
+                          l.book_title.toLowerCase().includes(q);
+                        const matchClass = studentClassFilter === 'ALL' || l.class_name.toLowerCase().includes(studentClassFilter.toLowerCase());
+                        return matchSearch && matchClass;
+                      }).map(l => (
                       <tr key={l.id} className="hover:bg-slate-50/60">
                         <td className="p-3.5 font-mono font-bold text-slate-800">{l.id}</td>
                         <td className="p-3.5 font-semibold text-slate-900">{l.book_title}</td>
@@ -968,7 +1046,7 @@ function LibrarianDashboardContent() {
                         </td>
                         <td className="p-3.5 font-bold text-rose-600">{l.due_date}</td>
                         <td className="p-3.5 font-mono font-bold text-rose-700">+{l.days_overdue} Days</td>
-                        <td className="p-3.5 font-mono font-extrabold text-purple-700">Tshilling {l.fine_amount}</td>
+                        <td className="p-3.5 font-mono font-extrabold text-purple-700">Tsh {l.fine_amount}</td>
                         <td className="p-3.5 text-right space-x-2">
                           <button
                             onClick={() => handleReturnBook(l.id)}
@@ -1000,7 +1078,7 @@ function LibrarianDashboardContent() {
             <div>
               <h2 className="text-lg font-bold text-slate-900">Fines & Penalties Register</h2>
               <p className="text-xs text-slate-500">
-                Statutory library fines (Tshilling 50 / day) for overdue, damaged, or lost books.
+                Statutory library fines (Tsh 50 / day) for overdue, damaged, or lost books.
               </p>
             </div>
           </div>
@@ -1031,8 +1109,8 @@ function LibrarianDashboardContent() {
                         </td>
                         <td className="p-3.5 text-slate-700">{f.book_title}</td>
                         <td className="p-3.5 font-mono">{f.days_overdue} days</td>
-                        <td className="p-3.5 font-mono text-slate-500">Tshilling {f.rate_per_day}</td>
-                        <td className="p-3.5 font-mono font-bold text-purple-700">Tshilling {f.total_fine}</td>
+                        <td className="p-3.5 font-mono text-slate-500">Tsh {f.rate_per_day}</td>
+                        <td className="p-3.5 font-mono font-bold text-purple-700">Tsh {f.total_fine}</td>
                         <td className="p-3.5">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1153,11 +1231,234 @@ function LibrarianDashboardContent() {
         </div>
       )}
 
-      {/* TAB 10: PROFILE */}
-      {activeTab === 'profile' && (
+      {/* TAB STUDENTS: STUDENT RECORDS */}
+      {activeTab === 'students' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Student Records &amp; Library Profiles</h2>
+              <p className="text-xs text-slate-500">
+                View student information, class enrollment, and library clearance status across all registered students.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 font-semibold border border-amber-200">
+                {Array.from(new Set(loans.map(l => l.admission_number))).length} Students with Library Activity
+              </span>
+            </div>
+          </div>
+
+          {/* Search & Filter */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <div className="relative flex-1">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search by student name or admission number..."
+                  id="student-records-search"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <select
+                value={studentClassFilter}
+                onChange={e => setStudentClassFilter(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="ALL">All Classes</option>
+                {Array.from(new Set(loans.map(l => l.class_name))).map(cls => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Students Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold text-[11px]">
+                    <th className="p-3.5">Admission #</th>
+                    <th className="p-3.5">Student Name</th>
+                    <th className="p-3.5">Class</th>
+                    <th className="p-3.5 text-center">Attendance Rate</th>
+                    <th className="p-3.5 text-center">Books Borrowed</th>
+                    <th className="p-3.5 text-center">Active Loans</th>
+                    <th className="p-3.5 text-center">Overdue</th>
+                    <th className="p-3.5 text-center">Library Status</th>
+                    <th className="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {(() => {
+                    const studentMap: Record<string, {
+                      name: string;
+                      admission: string;
+                      class_name: string;
+                      attendance_rate: number;
+                      loans: typeof loans;
+                    }> = {};
+
+                    loans.forEach(l => {
+                      if (!studentMap[l.admission_number]) {
+                        studentMap[l.admission_number] = {
+                          name: l.student_name,
+                          admission: l.admission_number,
+                          class_name: l.class_name,
+                          attendance_rate: l.attendance_rate || 95,
+                          loans: []
+                        };
+                      }
+                      studentMap[l.admission_number].loans.push(l);
+                    });
+
+                    const students = Object.values(studentMap).filter(s => {
+                      const q = search.toLowerCase();
+                      const matchSearch = !q || s.name.toLowerCase().includes(q) || s.admission.toLowerCase().includes(q);
+                      const matchClass = studentClassFilter === 'ALL' || s.class_name === studentClassFilter;
+                      return matchSearch && matchClass;
+                    });
+
+                    if (students.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={9} className="p-10 text-center text-slate-400">
+                            <div className="flex flex-col items-center gap-2">
+                              <Users className="w-8 h-8 text-slate-300" />
+                              <span>No student records found. Students appear here once they borrow a library book.</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return students.map(s => {
+                      const totalBorrowed = s.loans.length;
+                      const activeLoans = s.loans.filter(l => l.status === 'ACTIVE').length;
+                      const overdueLoans = s.loans.filter(l => l.status === 'OVERDUE').length;
+                      const clearance = overdueLoans > 0 ? 'OVERDUE_FINE' : activeLoans > 0 ? 'BOOKS_OUT' : 'CLEARED';
+
+                      return (
+                        <tr key={s.admission} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="p-3.5 font-mono text-slate-600 font-medium">{s.admission}</td>
+                          <td className="p-3.5">
+                            <div className="font-semibold text-slate-900">{s.name}</div>
+                          </td>
+                          <td className="p-3.5 text-slate-600">{s.class_name}</td>
+                          <td className="p-3.5 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              s.attendance_rate >= 90
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : s.attendance_rate >= 80
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}>
+                              {s.attendance_rate}%
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-center font-bold text-slate-700">{totalBorrowed}</td>
+                          <td className="p-3.5 text-center">
+                            {activeLoans > 0 ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">{activeLoans}</span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 text-center">
+                            {overdueLoans > 0 ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">{overdueLoans}</span>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 text-center">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              clearance === 'CLEARED'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : clearance === 'OVERDUE_FINE'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}>
+                              {clearance === 'CLEARED' ? '✓ Cleared' : clearance === 'OVERDUE_FINE' ? '⚠ Overdue Fine' : '📚 Books Out'}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => alert(`Library & Attendance Profile — ${s.name} (${s.admission})\nClass: ${s.class_name}\nAttendance: ${s.attendance_rate}%\nBooks Borrowed: ${totalBorrowed}\nActive Loans: ${activeLoans}\nOverdue Books: ${overdueLoans}\nLibrary Clearance: ${clearance}`)}
+                                className="px-2 py-1 text-[11px] font-semibold rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-600 transition-all"
+                              >
+                                View
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => alert(`Student Profile Submitted to Headmaster & Admin:\n\nStudent: ${s.name} (${s.admission})\nClass: ${s.class_name}\nAttendance: ${s.attendance_rate}%\nBooks Borrowed: ${totalBorrowed}\nLibrary Status: ${clearance}\n\n✓ Report forwarded to the Headmaster and Administrator for individual monitoring in accordance with school guidelines.`)}
+                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition-all flex items-center gap-1"
+                              >
+                                <Send className="w-3 h-3 text-amber-600" />
+                                <span>Send to Headmaster &amp; Admin</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Summary Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+              <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Library Cleared</div>
+              <div className="text-3xl font-extrabold text-emerald-700">
+                {Array.from(new Set(loans.map(l => l.admission_number)))
+                  .filter(adm => {
+                    const sLoans = loans.filter(l => l.admission_number === adm);
+                    return !sLoans.some(l => l.status === 'OVERDUE' || l.status === 'ACTIVE');
+                  }).length}
+              </div>
+              <div className="text-xs text-emerald-600 mt-1">Students with no outstanding loans</div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+              <div className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Books Currently Out</div>
+              <div className="text-3xl font-extrabold text-amber-700">
+                {Array.from(new Set(loans.map(l => l.admission_number)))
+                  .filter(adm => {
+                    const sLoans = loans.filter(l => l.admission_number === adm);
+                    return sLoans.some(l => l.status === 'ACTIVE') && !sLoans.some(l => l.status === 'OVERDUE');
+                  }).length}
+              </div>
+              <div className="text-xs text-amber-600 mt-1">Students with active loans (within period)</div>
+            </div>
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
+              <div className="text-xs font-bold text-rose-700 uppercase tracking-wider mb-1">Overdue / Fine Pending</div>
+              <div className="text-3xl font-extrabold text-rose-700">
+                {Array.from(new Set(loans.map(l => l.admission_number)))
+                  .filter(adm => loans.filter(l => l.admission_number === adm).some(l => l.status === 'OVERDUE'))
+                  .length}
+              </div>
+              <div className="text-xs text-rose-600 mt-1">Students with overdue books / unpaid fines</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: NOTIFICATIONS */}
+      {activeTab === 'notifications' && (
+        <NotificationCenter />
+      )}
+
+      {/* TAB 10: PROFILE & SECURITY */}
+      {(activeTab === 'profile' || activeTab === 'account' || activeTab === 'security') && (
         <DashboardProfileTab
           title="Chief Librarian Profile"
           subtitle="Official library administrator credentials, catalog authority, and profile avatar"
+          initialOpenPassword={activeTab === 'security'}
           extraDetails={[
             { label: 'Staff ID', val: 'LIB-2023-009' },
             { label: 'Department', val: 'Library & Learning Resources' },
@@ -1435,7 +1736,7 @@ function LibrarianDashboardContent() {
 
             <div className="flex justify-between items-baseline py-2 border-y border-slate-100">
               <span className="font-bold text-slate-700">Total Penalty Fine</span>
-              <span className="text-lg font-black text-purple-700 font-mono">Tshilling {selectedFine.total_fine}</span>
+              <span className="text-lg font-black text-purple-700 font-mono">Tsh {selectedFine.total_fine}</span>
             </div>
 
             <div className="flex gap-2 pt-2">

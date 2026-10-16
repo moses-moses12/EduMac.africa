@@ -12,30 +12,24 @@ import { studentService, Student, academicService } from '@/services';
 import { UserCheck, RefreshCw, Trash2, Camera, Shield, User, MapPin, Calendar, Phone } from 'lucide-react';
 
 const studentSchema = z.object({
-  admission_number: z
-    .string()
-    .min(3, 'Admission number must be at least 3 characters')
-    .max(20, 'Admission number cannot exceed 20 characters')
-    .regex(/^[A-Za-z0-9-]+$/, 'Only alphanumeric characters and hyphens allowed'),
-  first_name: z.string().min(2, 'First name is required (min 2 chars)'),
-  last_name: z.string().min(2, 'Last name is required (min 2 chars)'),
-  email: z.string().email('Please enter a valid email address'),
-  phone_number: z.string().optional(),
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER', 'M', 'F'], { message: 'Please select a gender' }),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'GRADUATED', 'TRANSFERRED', 'SUSPENDED', 'ARCHIVED']),
-  date_of_birth: z.string().optional(),
-  admission_date: z.string().optional(),
-  address: z.string().optional(),
-  current_class: z.string().min(1, 'Please select an academic class'),
-  current_stream: z.string().optional(),
-  academic_year: z.string().optional(),
-  profile_photo: z.string().optional(),
-  parent_name: z.string().min(2, 'Parent/Guardian full name is required'),
+  admission_number: z.string().optional().or(z.literal('')),
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  email: z.string().optional().or(z.literal('')),
+  phone_number: z.string().optional().or(z.literal('')),
+  gender: z.enum(['MALE', 'FEMALE', 'OTHER', 'M', 'F']).default('MALE'),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'GRADUATED', 'TRANSFERRED', 'SUSPENDED', 'ARCHIVED']).default('ACTIVE'),
+  date_of_birth: z.string().optional().or(z.literal('')),
+  admission_date: z.string().optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
+  current_class: z.string().optional().or(z.literal('')),
+  current_stream: z.string().optional().or(z.literal('')),
+  academic_year: z.string().optional().or(z.literal('')),
+  profile_photo: z.string().optional().or(z.literal('')),
+  parent_name: z.string().optional().or(z.literal('')),
   parent_relationship: z.string().default('GUARDIAN'),
-  parent_phone: z
-    .string()
-    .regex(/^\+?[0-9]{9,15}$/, 'Valid phone number required (e.g. +255712345678)'),
-  medical_notes: z.string().optional(),
+  parent_phone: z.string().optional().or(z.literal('')),
+  medical_notes: z.string().optional().or(z.literal('')),
 });
 
 export type StudentFormData = z.infer<typeof studentSchema>;
@@ -57,9 +51,23 @@ export function StudentFormModal({
   const [serverError, setServerError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([]);
-  const [streamOptions, setStreamOptions] = useState<{ label: string; value: string }[]>([]);
-  const [yearOptions, setYearOptions] = useState<{ label: string; value: string }[]>([]);
+  const [classOptions, setClassOptions] = useState<{ label: string; value: string }[]>([
+    { label: 'Form 1 Freshmen', value: 'Form 1' },
+    { label: 'Form 2 Junior', value: 'Form 2' },
+    { label: 'Form 3 Senior', value: 'Form 3' },
+    { label: 'Form 4 Candidates', value: 'Form 4' },
+    { label: 'Grade 9', value: 'Grade 9' },
+    { label: 'Grade 10', value: 'Grade 10' },
+    { label: 'Grade 11', value: 'Grade 11' },
+  ]);
+  const [streamOptions, setStreamOptions] = useState<{ label: string; value: string }[]>([
+    { label: 'Stream A (Science)', value: 'Stream A' },
+    { label: 'Stream B (Arts)', value: 'Stream B' },
+    { label: 'Stream C (General)', value: 'Stream C' },
+  ]);
+  const [yearOptions, setYearOptions] = useState<{ label: string; value: string }[]>([
+    { label: '2026/2027 (Current)', value: '2026/2027' },
+  ]);
 
   const isEditing = Boolean(initialData?.id);
 
@@ -139,7 +147,6 @@ export function StudentFormModal({
     },
   });
 
-  const photoUrlWatch = watch('profile_photo');
 
   const getError = (field: string): string | undefined => {
     const err = errors[field];
@@ -148,16 +155,55 @@ export function StudentFormModal({
 
   const onSubmit = async (data: any) => {
     setServerError(null);
+    const cleanData: any = { ...data };
+    delete cleanData.profile_photo;
+
+    // 1. Sanitize admission_number
+    if (cleanData.admission_number && String(cleanData.admission_number).trim() !== '') {
+      cleanData.admission_number = String(cleanData.admission_number).trim();
+    } else {
+      delete cleanData.admission_number;
+    }
+
+    // 2. Sanitize names
+    cleanData.first_name = String(cleanData.first_name || 'Pupil').trim();
+    cleanData.last_name = String(cleanData.last_name || 'Student').trim();
+
+    // 3. Sanitize email (leave empty for backend auto-generation)
+    if (cleanData.email && String(cleanData.email).trim() !== '' && String(cleanData.email).includes('@')) {
+      cleanData.email = String(cleanData.email).trim().toLowerCase();
+    } else {
+      delete cleanData.email;
+    }
+
+    // 4. Sanitize phone numbers (strip spaces, hyphens, parentheses)
+    if (cleanData.phone_number) {
+      cleanData.phone_number = String(cleanData.phone_number).replace(/[\s\-\(\)]/g, '');
+    }
+    if (cleanData.parent_phone) {
+      cleanData.parent_phone = String(cleanData.parent_phone).replace(/[\s\-\(\)]/g, '');
+    }
+
+    // 5. Fallback parent details
+    if (!cleanData.parent_name || String(cleanData.parent_name).trim() === '') {
+      cleanData.parent_name = 'Parent / Guardian';
+    }
+
+    // 6. Fallback class
+    if (!cleanData.current_class || String(cleanData.current_class).trim() === '') {
+      cleanData.current_class = classOptions[0]?.value || 'Form 1';
+    }
+
     try {
       let resultStudent: Student;
       if (isEditing && initialData?.id) {
-        resultStudent = await studentService.updateStudent(initialData.id, data);
-        success('Student Profile Updated', `${data.first_name} ${data.last_name} record saved successfully.`);
+        resultStudent = await studentService.updateStudent(initialData.id, cleanData);
+        success('Student Profile Updated', `${cleanData.first_name} ${cleanData.last_name} record saved successfully.`);
       } else {
-        resultStudent = await studentService.createStudent(data);
+        resultStudent = await studentService.createStudent(cleanData);
         success(
           'Student Enrolled & Billed',
-          `${data.first_name} ${data.last_name} admitted. Tuition invoice and ledger automatically created!`
+          `${cleanData.first_name} ${cleanData.last_name} admitted. Tuition invoice and ledger automatically created!`
         );
       }
 
@@ -165,20 +211,36 @@ export function StudentFormModal({
       reset();
       onClose();
     } catch (err: any) {
-      if (err.response?.data?.errors) {
-        const fieldErrors = err.response.data.errors;
-        Object.keys(fieldErrors).forEach((field) => {
-          const message = Array.isArray(fieldErrors[field])
-            ? fieldErrors[field][0]
-            : fieldErrors[field];
-          setError(field as any, { message });
-        });
-        toastError('Validation Failed', 'Please correct the highlighted fields.');
-      } else {
-        const message = err.response?.data?.message || err.message || 'Operation failed.';
-        setServerError(message);
-        toastError('Server Error', message);
+      let message = 'Operation failed. Please check the entered data.';
+      if (err.response?.data) {
+        const d = err.response.data;
+        if (typeof d === 'string') {
+          message = d;
+        } else if (d.message) {
+          message = d.message;
+        } else if (d.errors) {
+          const fieldErrors = d.errors;
+          const msgs: string[] = [];
+          Object.keys(fieldErrors).forEach((field) => {
+            const m = Array.isArray(fieldErrors[field]) ? fieldErrors[field][0] : fieldErrors[field];
+            setError(field as any, { message: m });
+            msgs.push(`${field}: ${m}`);
+          });
+          message = msgs.join(' | ');
+        } else if (typeof d === 'object') {
+          const msgs: string[] = [];
+          Object.entries(d).forEach(([k, v]) => {
+            const val = Array.isArray(v) ? v[0] : v;
+            msgs.push(`${k}: ${val}`);
+            setError(k as any, { message: String(val) });
+          });
+          if (msgs.length > 0) message = msgs.join(' | ');
+        }
+      } else if (err.message) {
+        message = err.message;
       }
+      setServerError(message);
+      toastError('Enrollment Notice', message);
     }
   };
 
@@ -261,10 +323,9 @@ export function StudentFormModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <FormInput
-                label="Admission Number *"
-                required
+                label="Admission Number"
                 error={getError('admission_number')}
-                placeholder="e.g. ADM-2026-001"
+                placeholder="Auto-generated (e.g. 241711356001)"
                 {...register('admission_number')}
               />
 
@@ -376,23 +437,22 @@ export function StudentFormModal({
           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-400">
               <Phone className="w-3.5 h-3.5" />
-              3. Contact, Location & Photo
+              3. Contact & Residential Location
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FormInput
-                label="Student Email *"
+                label="Student Email"
                 type="email"
-                required
                 error={getError('email')}
-                placeholder="student@school.edu"
+                placeholder="Optional (auto-generated if empty)"
                 {...register('email')}
               />
 
               <FormInput
                 label="Student Phone Number"
                 error={getError('phone_number')}
-                placeholder="+255 712 345 678"
+                placeholder="+255 712 345 678 (Optional)"
                 {...register('phone_number')}
               />
             </div>
@@ -403,27 +463,6 @@ export function StudentFormModal({
               placeholder="e.g. 123 Uhuru Street, Dar es Salaam"
               {...register('address')}
             />
-
-            <div className="space-y-1.5">
-              <FormInput
-                label="Profile Photo URL"
-                error={getError('profile_photo')}
-                placeholder="https://example.com/photos/student.jpg"
-                {...register('profile_photo')}
-              />
-              {photoUrlWatch && (
-                <div className="flex items-center gap-2 mt-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photoUrlWatch}
-                    alt="Preview"
-                    className="w-10 h-10 rounded-full object-cover border border-slate-700"
-                    onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
-                  />
-                  <span className="text-[11px] text-slate-400">Photo URL preview</span>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Section: Parent / Guardian */}
@@ -436,10 +475,9 @@ export function StudentFormModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <FormInput
-                  label="Parent / Guardian Name *"
-                  required
+                  label="Parent / Guardian Name"
                   error={getError('parent_name')}
-                  placeholder="e.g. Juma Omari"
+                  placeholder="e.g. Juma Omari (Optional)"
                   {...register('parent_name')}
                 />
               </div>
@@ -456,10 +494,9 @@ export function StudentFormModal({
             </div>
 
             <FormInput
-              label="Guardian Phone Number *"
-              required
+              label="Guardian Phone Number"
               error={getError('parent_phone')}
-              placeholder="+255 789 012 345"
+              placeholder="e.g. 0712 345 678 or +255 789 012 345"
               {...register('parent_phone')}
             />
           </div>

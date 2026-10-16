@@ -14,10 +14,11 @@ import {
   LogOut,
   Camera,
   ExternalLink,
+  KeyRound,
 } from 'lucide-react';
 
 export interface AvatarDropdownProps {
-  onOpenProfileModal?: () => void;
+  onOpenProfileModal?: (tab?: 'avatar' | 'details' | 'security') => void;
   className?: string;
 }
 
@@ -58,7 +59,6 @@ export function AvatarDropdown({ onOpenProfileModal, className = '' }: AvatarDro
     ACADEMIC: '/dashboard/academic',
     TEACHER: '/dashboard/teacher',
     STUDENT: '/dashboard/student',
-    PARENT: '/dashboard/parent',
     ACCOUNTANT: '/dashboard/accountant',
     LIBRARIAN: '/dashboard/librarian',
     EXAM_OFFICER: '/dashboard/exam',
@@ -89,10 +89,10 @@ export function AvatarDropdown({ onOpenProfileModal, className = '' }: AvatarDro
           className="ring-1 ring-slate-200"
         />
         <div className="hidden md:flex flex-col text-left">
-          <span className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
+          <span suppressHydrationWarning className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[120px]">
             {user?.first_name || fullName}
           </span>
-          <span className="text-[10px] text-slate-500 font-mono font-medium truncate max-w-[120px]">
+          <span suppressHydrationWarning className="text-[10px] text-slate-500 font-mono font-medium truncate max-w-[120px]">
             {role || 'USER'}
           </span>
         </div>
@@ -136,18 +136,33 @@ export function AvatarDropdown({ onOpenProfileModal, className = '' }: AvatarDro
             </Link>
 
             {onOpenProfileModal && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  onOpenProfileModal();
-                }}
-                role="menuitem"
-                className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer text-left"
-              >
-                <Camera className="w-3.5 h-3.5 text-slate-400" />
-                <span>Upload Profile Photo</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenProfileModal('avatar');
+                  }}
+                  role="menuitem"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer text-left"
+                >
+                  <Camera className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Upload Profile Photo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenProfileModal('security');
+                  }}
+                  role="menuitem"
+                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors cursor-pointer text-left"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Change Password</span>
+                </button>
+              </>
             )}
 
             {role === 'ADMIN' ? (
@@ -179,7 +194,7 @@ export function AvatarDropdown({ onOpenProfileModal, className = '' }: AvatarDro
               className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors"
             >
               <Shield className="w-3.5 h-3.5 text-slate-400" />
-              <span>Security & Password</span>
+              <span>Security & Password (Page)</span>
             </Link>
           </div>
 

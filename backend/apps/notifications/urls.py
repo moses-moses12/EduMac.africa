@@ -1,8 +1,9 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import NotificationViewSet
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'inbox', NotificationViewSet, basename='notification')
 router.register(r'', NotificationViewSet, basename='notification-root')
 

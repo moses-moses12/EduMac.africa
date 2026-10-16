@@ -19,8 +19,8 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: 'Apex Academy | Enterprise School Management System',
-  description: 'Production-ready unified ERP for modern schools: 10 dedicated role portals, academic management, attendance, grading, financial billing, and analytics.',
+  title: 'EduMax Schools Management System',
+  description: 'EduMax Schools Management System - Unified ERP for modern schools: 9 dedicated role portals, academic management, attendance, grading, financial billing, and analytics.',
 };
 
 export default function RootLayout({

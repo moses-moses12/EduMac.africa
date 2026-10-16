@@ -12,7 +12,6 @@ const DASHBOARDS = [
   { role: 'Academic Officer', path: 'src/app/dashboard/academic/page.tsx' },
   { role: 'Teacher', path: 'src/app/dashboard/teacher/page.tsx' },
   { role: 'Student', path: 'src/app/dashboard/student/page.tsx' },
-  { role: 'Parent/Guardian', path: 'src/app/dashboard/parent/page.tsx' },
   { role: 'Accountant', path: 'src/app/dashboard/accountant/page.tsx' },
   { role: 'Librarian', path: 'src/app/dashboard/librarian/page.tsx' },
   { role: 'Examination Officer', path: 'src/app/dashboard/exam/page.tsx' },

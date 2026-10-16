@@ -447,7 +447,6 @@ export function NotificationCenter() {
                     <option value="ALL">Entire Campus (Everyone)</option>
                     <option value="STUDENT">Students Only</option>
                     <option value="TEACHER">Faculty & Teachers Only</option>
-                    <option value="PARENT">Parents Only</option>
                     <option value="STAFF">Administrative Staff Only</option>
                     <option value="ACCOUNTANT">Bursary & Accounts Only</option>
                   </select>

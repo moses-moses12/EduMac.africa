@@ -1,3 +1,4 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
@@ -10,7 +11,7 @@ from .views import (
     AcademicCalendarViewSet,
 )
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'years', AcademicYearViewSet, basename='academic-year')
 router.register(r'terms', TermViewSet, basename='term')
 router.register(r'classes', ClassViewSet, basename='class')

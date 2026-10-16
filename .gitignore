@@ -21,6 +21,7 @@ backend/.pytest_cache/
 backend/staticfiles/
 backend/media/avatars/*
 !backend/media/avatars/.gitkeep
+backend/scratch/
 
 # Environment Variables
 .env

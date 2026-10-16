@@ -1,8 +1,9 @@
+from core.routers import OptionalSlashRouter
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import ResultViewSet, StudentMyResultsView
 
-router = DefaultRouter()
+router = OptionalSlashRouter()
 router.register(r'scores', ResultViewSet, basename='result')
 router.register(r'', ResultViewSet, basename='result-root')
 

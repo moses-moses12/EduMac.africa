@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { UserRole } from '@/lib/types';
 import { UserAvatar } from '@/components/profile';
+import { EduMaxLogoIcon } from '@/components/ui/EduMaxLogo';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -16,7 +17,6 @@ import {
   Library,
   Award,
   Bell,
-  LogOut,
   Layers,
   School,
   BookOpen,
@@ -50,7 +50,6 @@ interface NavItem {
   href: string;
   tab: string;
   icon: React.ComponentType<{ className?: string }>;
-  isLogout?: boolean;
 }
 
 interface RoleConfig {
@@ -76,7 +75,6 @@ const teacherNavItems: NavItem[] = [
   { name: 'Notifications', href: '/dashboard/teacher?tab=notifications', tab: 'notifications', icon: Bell },
   { name: 'Profile', href: '/dashboard/teacher?tab=profile', tab: 'profile', icon: User },
   { name: 'Account', href: '/dashboard/teacher?tab=account', tab: 'account', icon: Settings },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 2. Admin Menu Items
@@ -86,7 +84,6 @@ const adminNavItems: NavItem[] = [
   { name: 'Students', href: '/dashboard/admin?tab=students', tab: 'students', icon: GraduationCap },
   { name: 'Teachers', href: '/dashboard/admin?tab=teachers', tab: 'teachers', icon: Users },
   { name: 'Staff', href: '/dashboard/admin?tab=staff', tab: 'staff', icon: Briefcase },
-  { name: 'Parents', href: '/dashboard/admin?tab=parents', tab: 'parents', icon: UserCheck },
   { name: 'Academics', href: '/dashboard/admin?tab=academics', tab: 'academics', icon: Layers },
   { name: 'Attendance', href: '/dashboard/admin?tab=attendance', tab: 'attendance', icon: CalendarCheck },
   { name: 'Examinations', href: '/dashboard/admin?tab=examinations', tab: 'examinations', icon: Award },
@@ -100,7 +97,6 @@ const adminNavItems: NavItem[] = [
   { name: 'Audit Logs', href: '/dashboard/admin?tab=audit', tab: 'audit', icon: History },
   { name: 'Settings', href: '/dashboard/admin?tab=settings', tab: 'settings', icon: Settings },
   { name: 'Profile', href: '/dashboard/admin?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 3. Headmaster Menu Items
@@ -110,6 +106,7 @@ const headmasterNavItems: NavItem[] = [
   { name: 'Attendance', href: '/dashboard/headmaster?tab=attendance', tab: 'attendance', icon: CalendarCheck },
   { name: 'Academic Performance', href: '/dashboard/headmaster?tab=academics', tab: 'academics', icon: Award },
   { name: 'Fee Overview', href: '/dashboard/headmaster?tab=fees', tab: 'fees', icon: CreditCard },
+  { name: 'Expense Approvals', href: '/dashboard/headmaster?tab=expenses', tab: 'expenses', icon: CheckCircle2 },
   { name: 'Teacher Statistics', href: '/dashboard/headmaster?tab=teachers', tab: 'teachers', icon: Users },
   { name: 'Class Performance', href: '/dashboard/headmaster?tab=classes', tab: 'classes', icon: Layers },
   { name: 'Examinations', href: '/dashboard/headmaster?tab=examinations', tab: 'examinations', icon: FileSpreadsheet },
@@ -117,7 +114,6 @@ const headmasterNavItems: NavItem[] = [
   { name: 'Management Reports', href: '/dashboard/headmaster?tab=reports', tab: 'reports', icon: BarChart3 },
   { name: 'Important Alerts', href: '/dashboard/headmaster?tab=alerts', tab: 'alerts', icon: AlertTriangle },
   { name: 'Profile', href: '/dashboard/headmaster?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 4. Accountant / Bursar Menu Items
@@ -128,9 +124,10 @@ const accountantNavItems: NavItem[] = [
   { name: 'Payments', href: '/dashboard/accountant?tab=payments', tab: 'payments', icon: DollarSign },
   { name: 'Receipts', href: '/dashboard/accountant?tab=receipts', tab: 'receipts', icon: Receipt },
   { name: 'Balances & Debtors', href: '/dashboard/accountant?tab=balances', tab: 'balances', icon: CreditCard },
+  { name: 'School Expenses', href: '/dashboard/accountant?tab=expenses', tab: 'expenses', icon: DollarSign },
   { name: 'Financial Reports', href: '/dashboard/accountant?tab=reports', tab: 'reports', icon: TrendingUp },
+  { name: 'Notifications', href: '/dashboard/accountant?tab=notifications', tab: 'notifications', icon: Bell },
   { name: 'Profile', href: '/dashboard/accountant?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 5. Librarian Menu Items
@@ -144,8 +141,9 @@ const librarianNavItems: NavItem[] = [
   { name: 'Overdue Books', href: '/dashboard/librarian?tab=overdue', tab: 'overdue', icon: AlertTriangle },
   { name: 'Fines & Penalties', href: '/dashboard/librarian?tab=fines', tab: 'fines', icon: Receipt },
   { name: 'Borrowing History', href: '/dashboard/librarian?tab=history', tab: 'history', icon: History },
+  { name: 'Student Records', href: '/dashboard/librarian?tab=students', tab: 'students', icon: Users },
+  { name: 'Notifications', href: '/dashboard/librarian?tab=notifications', tab: 'notifications', icon: Bell },
   { name: 'Profile', href: '/dashboard/librarian?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 6. Examination Officer Menu Items
@@ -163,7 +161,6 @@ const examNavItems: NavItem[] = [
   { name: 'Report Cards', href: '/dashboard/exam?tab=report-cards', tab: 'report-cards', icon: Printer },
   { name: 'Academic Analytics', href: '/dashboard/exam?tab=analytics', tab: 'analytics', icon: BarChart3 },
   { name: 'Profile', href: '/dashboard/exam?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 7. Front-Office / Staff Menu Items
@@ -179,7 +176,6 @@ const staffNavItems: NavItem[] = [
   { name: 'Front-Office & Visitors', href: '/dashboard/staff?tab=front-office', tab: 'front-office', icon: Briefcase },
   { name: 'Announcements', href: '/dashboard/staff?tab=announcements', tab: 'announcements', icon: Bell },
   { name: 'Profile', href: '/dashboard/staff?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // 8. Student Menu Items
@@ -194,30 +190,16 @@ const studentNavItems: NavItem[] = [
   { name: 'My Fees', href: '/dashboard/student?tab=fees', tab: 'fees', icon: CreditCard },
   { name: 'Notifications', href: '/dashboard/student?tab=notifications', tab: 'notifications', icon: Bell },
   { name: 'Account', href: '/dashboard/student?tab=account', tab: 'account', icon: Settings },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
-// 9. Parent Menu Items
-const parentNavItems: NavItem[] = [
-  { name: 'Overview', href: '/dashboard/parent?tab=overview', tab: 'overview', icon: LayoutDashboard },
-  { name: 'Linked Children', href: '/dashboard/parent?tab=children', tab: 'children', icon: Users },
-  { name: "Children's Results", href: '/dashboard/parent?tab=results', tab: 'results', icon: Award },
-  { name: 'Attendance', href: '/dashboard/parent?tab=attendance', tab: 'attendance', icon: UserCheck },
-  { name: 'Fee Balances', href: '/dashboard/parent?tab=fees', tab: 'fees', icon: CreditCard },
-  { name: 'Payment History', href: '/dashboard/parent?tab=payments', tab: 'payments', icon: Receipt },
-  { name: 'Class Timetable', href: '/dashboard/parent?tab=timetable', tab: 'timetable', icon: Clock },
-  { name: 'Assignments', href: '/dashboard/parent?tab=assignments', tab: 'assignments', icon: ClipboardList },
-  { name: 'Announcements', href: '/dashboard/parent?tab=announcements', tab: 'announcements', icon: FileText },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
-];
-
-// 10. Academic Affairs Menu Items
+// 9. Academic Affairs Menu Items
 const academicNavItems: NavItem[] = [
   { name: 'Classes & Streams', href: '/dashboard/academic?tab=classes', tab: 'classes', icon: Layers },
   { name: 'Subject Curriculum', href: '/dashboard/academic?tab=subjects', tab: 'subjects', icon: BookOpen },
+  { name: 'Teacher Allocations', href: '/dashboard/academic?tab=assignments', tab: 'assignments', icon: Users },
+  { name: 'Timetable Master', href: '/dashboard/academic?tab=timetable', tab: 'timetable', icon: Clock },
   { name: 'Academic Terms', href: '/dashboard/academic?tab=terms', tab: 'terms', icon: CalendarCheck },
   { name: 'Dean Profile', href: '/dashboard/academic?tab=profile', tab: 'profile', icon: User },
-  { name: 'Logout', href: '#logout', tab: 'logout', icon: LogOut, isLogout: true },
 ];
 
 // Complete Role Registry
@@ -231,7 +213,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
     items: adminNavItems,
   },
   HEADMASTER: {
-    title: 'Executive Governance',
+    title: 'Headmaster',
     subtitle: 'Headmaster Office',
     badgeLabel: 'Analytics',
     activeBg: 'bg-amber-600 text-white shadow-sm font-semibold',
@@ -261,14 +243,6 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
     activeBg: 'bg-indigo-600 text-white shadow-sm',
     badgeBg: 'bg-indigo-500/20 text-indigo-300',
     items: studentNavItems,
-  },
-  PARENT: {
-    title: 'Parent Portal',
-    subtitle: 'Guardian Dashboard',
-    badgeLabel: 'Guardian',
-    activeBg: 'bg-purple-600 text-white shadow-sm',
-    badgeBg: 'bg-purple-500/20 text-purple-300',
-    items: parentNavItems,
   },
   ACCOUNTANT: {
     title: 'Bursar & Finance',
@@ -311,19 +285,21 @@ function SidebarContent() {
   const { user, role, logout } = useAuth();
 
   // Determine current active role strictly
-  const activeRole: UserRole = role || (pathname.includes('/student') ? 'STUDENT' : pathname.includes('/parent') ? 'PARENT' : pathname.includes('/academic') ? 'ACADEMIC' : 'ADMIN');
+  const activeRole: UserRole = role || (pathname.includes('/student') ? 'STUDENT' : pathname.includes('/academic') ? 'ACADEMIC' : 'ADMIN');
   const config = ROLE_CONFIGS[activeRole] || ROLE_CONFIGS['ADMIN'];
 
   return (
     <aside className="w-72 bg-slate-900 text-slate-100 flex flex-col h-screen border-r border-slate-800 shrink-0 sticky top-0">
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white border border-indigo-500/30">
-            <School className="w-4 h-4 text-white" />
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-11 h-11 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shadow-blue-900/30 border border-slate-200/20 group-hover:scale-105 transition-transform duration-200 shrink-0">
+            <EduMaxLogoIcon className="w-full h-full" />
           </div>
           <div>
-            <span className="text-sm font-bold tracking-tight text-white block">Apex SMS</span>
+            <span className="text-sm font-black tracking-tight text-white block group-hover:text-blue-300 transition-colors">
+              EduMax SMS
+            </span>
             <span className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">
               {config.title}
             </span>
@@ -348,19 +324,6 @@ function SidebarContent() {
           const isActive = currentTab === item.tab || ((item.tab === 'overview' || item.tab === 'dashboard' || item.tab === 'children') && !searchParams.get('tab') && pathname.includes(item.href.split('?')[0]));
           const Icon = item.icon;
 
-          if (item.isLogout) {
-            return (
-              <button
-                key={item.tab}
-                onClick={logout}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all text-left mt-2 cursor-pointer"
-              >
-                <Icon className="w-4 h-4 text-rose-400" />
-                <span>{item.name}</span>
-              </button>
-            );
-          }
-
           return (
             <Link
               key={item.tab}
@@ -378,7 +341,7 @@ function SidebarContent() {
         })}
       </div>
 
-      {/* User Footer Profile & Logout */}
+      {/* User Footer Profile */}
       <div className="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between">
         <div className="flex items-center gap-2.5 overflow-hidden">
           <UserAvatar user={user} size="sm" bordered status="online" className="shrink-0" />
@@ -391,13 +354,6 @@ function SidebarContent() {
             </div>
           </div>
         </div>
-        <button
-          onClick={logout}
-          title="Sign out / Logout"
-          className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors shrink-0 cursor-pointer"
-        >
-          <LogOut className="w-4 h-4" />
-        </button>
       </div>
     </aside>
   );

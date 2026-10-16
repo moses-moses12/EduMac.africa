@@ -4,7 +4,6 @@ export type UserRole =
   | 'ACADEMIC'
   | 'TEACHER'
   | 'STUDENT'
-  | 'PARENT'
   | 'ACCOUNTANT'
   | 'LIBRARIAN'
   | 'EXAM_OFFICER'
